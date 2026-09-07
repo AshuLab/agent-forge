@@ -6,7 +6,7 @@ import { readAgents, listAgents } from './config.js';
 import { generateGithubAppToken, resolveBotId } from './github.js';
 import { detectAvailableProviders, getProviderInfo, getProviderPromptArgs } from './providers.js';
 import { syncIdentityFile } from './identity.js';
-import { addAgentWizard, interactiveSelection, parseArgs, printHelp, showIntro } from './cli.js';
+import { addAgentWizard, interactiveSelection, parseArgs, printHelp, printVersion, showIntro } from './cli.js';
 
 function findAgent(agentName) {
   const agent = readAgents().find((item) => item.name === agentName);
@@ -89,6 +89,11 @@ async function main() {
 
   if (flags.help) {
     printHelp();
+    return;
+  }
+
+  if (flags.version) {
+    printVersion();
     return;
   }
 

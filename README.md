@@ -124,6 +124,7 @@ Other commands:
 
 ```bash
 agent-forge --list
+agent-forge --version
 agent-forge --help
 ```
 
