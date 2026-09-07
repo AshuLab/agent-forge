@@ -66,14 +66,11 @@ function validateAgents(agents) {
   });
 }
 
-export function readAgents() {
+// Returns [] when no config exists yet or it holds no agents. Still throws on
+// invalid JSON or malformed agents — "empty" and "broken" are different.
+export function readAgentsOrEmpty() {
   const path = resolveConfigPath();
-  if (!existsSync(path)) {
-    throw new Error(
-      `No agents.json found. Run "agent-forge add" to create one at ${GLOBAL_CONFIG}, ` +
-        'or point AGENT_FORGE_CONFIG at an existing file.'
-    );
-  }
+  if (!existsSync(path)) return [];
 
   let parsed;
   try {
@@ -82,12 +79,24 @@ export function readAgents() {
     throw new Error(`agents.json is not valid JSON: ${error.message}`);
   }
 
-  if (!Array.isArray(parsed.agents) || parsed.agents.length === 0) {
-    throw new Error('agents.json: no agents defined');
-  }
+  if (!Array.isArray(parsed.agents) || parsed.agents.length === 0) return [];
 
   validateAgents(parsed.agents);
   return parsed.agents;
+}
+
+export function readAgents() {
+  const agents = readAgentsOrEmpty();
+  if (agents.length === 0) {
+    if (!existsSync(resolveConfigPath())) {
+      throw new Error(
+        `No agents.json found. Run "agent-forge add" to create one at ${GLOBAL_CONFIG}, ` +
+          'or point AGENT_FORGE_CONFIG at an existing file.'
+      );
+    }
+    throw new Error('agents.json: no agents defined');
+  }
+  return agents;
 }
 
 export function listAgents() {

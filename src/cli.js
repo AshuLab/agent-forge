@@ -1,5 +1,5 @@
 import { cancel, confirm, intro, isCancel, note, outro, select, spinner, text } from '@clack/prompts';
-import { addAgent, readAgents } from './config.js';
+import { addAgent, readAgents, readAgentsOrEmpty } from './config.js';
 import { fetchAppMetadata, generateGithubAppToken, resolveBotId } from './github.js';
 import { detectAvailableProviders } from './providers.js';
 
@@ -35,8 +35,8 @@ function keep(value) {
   return value;
 }
 
-export async function addAgentWizard() {
-  intro('Add agent');
+export async function addAgentWizard({ embedded = false } = {}) {
+  if (!embedded) intro('Add agent');
 
   const appId = keep(
     await text({
@@ -95,7 +95,12 @@ export async function addAgentWizard() {
   check.stop('Test token ok');
 
   const path = addAgent(agent);
-  outro(`Wrote ${path}`);
+  if (embedded) {
+    note(`Wrote ${path}`, 'Agent added');
+  } else {
+    outro(`Wrote ${path}`);
+  }
+  return agent.name;
 }
 
 export async function interactiveSelection(defaults = {}) {
@@ -105,31 +110,47 @@ export async function interactiveSelection(defaults = {}) {
     throw new Error('No installed provider was detected. Install claude, codex, or antigravity before running the launcher.');
   }
 
-  let providerChoice = defaults.provider;
-  if (providerChoice && !availableProviders.some((provider) => provider.value === providerChoice)) {
-    throw new Error(`The provider ${providerChoice} is not installed or not available in PATH.`);
-  }
-  if (!providerChoice) {
-    providerChoice = keep(
-      await select({
-        message: 'Which provider do you want to use?',
-        options: availableProviders.map((provider) => ({ value: provider.value, label: provider.label })),
-      })
-    );
+  let agents = readAgentsOrEmpty();
+  if (agents.length === 0 && !defaults.agent) {
+    note('No agents configured yet. Each agent is a GitHub App identity the launcher runs under.', 'First run');
+    if (!keep(await confirm({ message: 'Add one now?' }))) {
+      cancel('Run "agent-forge add" when you\'re ready.');
+      process.exit(0);
+    }
+    await addAgentWizard({ embedded: true });
+    agents = readAgents();
   }
 
-  const agents = readAgents();
   let agentChoice = defaults.agent;
   if (agentChoice && !agents.some((agent) => agent.name === agentChoice)) {
     throw new Error(`Agent not found: ${agentChoice}`);
   }
   if (!agentChoice) {
-    agentChoice = keep(
-      await select({
-        message: 'Which agent do you want to launch?',
-        options: agents.map((agent) => ({ value: agent.name, label: agent.label || agent.name })),
-      })
-    );
+    agentChoice =
+      agents.length === 1
+        ? agents[0].name
+        : keep(
+            await select({
+              message: 'Which agent do you want to launch?',
+              options: agents.map((agent) => ({ value: agent.name, label: agent.label || agent.name })),
+            })
+          );
+  }
+
+  let providerChoice = defaults.provider;
+  if (providerChoice && !availableProviders.some((provider) => provider.value === providerChoice)) {
+    throw new Error(`The provider ${providerChoice} is not installed or not available in PATH.`);
+  }
+  if (!providerChoice) {
+    providerChoice =
+      availableProviders.length === 1
+        ? availableProviders[0].value
+        : keep(
+            await select({
+              message: 'Which provider do you want to use?',
+              options: availableProviders.map((provider) => ({ value: provider.value, label: provider.label })),
+            })
+          );
   }
 
   if (!keep(await confirm({ message: `Launch ${agentChoice} with ${providerChoice}?` }))) {
