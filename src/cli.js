@@ -40,10 +40,15 @@ Config resolution (first match wins):
 `);
 }
 
+// Clean stop on a user-initiated cancel: "└  ✖ <message>" then exit 0.
+function bail(message = 'Cancelled') {
+  cancel(`✖  ${message}`);
+  process.exit(0);
+}
+
 function keep(value) {
   if (isCancel(value)) {
-    cancel('Cancelled.');
-    process.exit(0);
+    bail();
   }
   return value;
 }
@@ -132,7 +137,7 @@ export async function interactiveSelection(defaults = {}) {
   if (agents.length === 0 && !defaults.agent) {
     note('No agents configured yet. Each agent is a GitHub App identity the launcher runs under.', 'First run');
     if (!keep(await confirm({ message: 'Add one now?' }))) {
-      cancel('Run "agent-forge add" when you\'re ready.');
+      outro(`Run ${styleText('cyan', 'agent-forge add')} when you're ready.`);
       process.exit(0);
     }
     await addAgentWizard({ embedded: true });
@@ -173,8 +178,7 @@ export async function interactiveSelection(defaults = {}) {
 
   const launchPrompt = `Launch ${styleText('green', agentChoice)} with ${styleText(['cyan', 'bold'], providerChoice)}?`;
   if (!keep(await confirm({ message: launchPrompt }))) {
-    cancel('Cancelled.');
-    process.exit(0);
+    bail('Cancelled — nothing launched');
   }
 
   return { agentName: agentChoice, providerName: providerChoice };
