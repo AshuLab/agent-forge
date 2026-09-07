@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { parseArgs } from '../src/cli.js';
+
+const run = (...argv) => {
+  process.argv = ['node', 'launcher', ...argv];
+  return parseArgs();
+};
+
+test('positional command, flag values, dash guard', () => {
+  assert.equal(run('token', '--agent', 'ops').command, 'token');
+  assert.equal(run('token', '--agent', 'ops').agent, 'ops');
+  assert.equal(run('--list').command, undefined, 'flags are not commands');
+  assert.equal(run('--agent', '--provider').agent, undefined, 'dash value rejected');
+  assert.equal(run('--provider', 'claude').provider, 'claude');
+});

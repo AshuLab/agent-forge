@@ -1,0 +1,57 @@
+{
+  "name": "@ashulab/agent-forge",
+  "version": "1.0.0",
+  "description": "Give claude/codex/antigravity their own GitHub identity: a bot account, a scoped token minted per run, git attribution to match",
+  "license": "MIT",
+  "author": "Diego Ghersi <ghersidl@gmail.com>",
+  "type": "module",
+  "bin": {
+    "agent-forge": "dist/launcher.cjs"
+  },
+  "main": "dist/launcher.cjs",
+  "files": [
+    "dist",
+    "schema",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.20.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AshuLab/agent-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AshuLab/agent-forge/issues"
+  },
+  "homepage": "https://github.com/AshuLab/agent-forge#readme",
+  "keywords": [
+    "github-app",
+    "cli",
+    "coding-agent",
+    "claude",
+    "codex",
+    "antigravity",
+    "installation-token",
+    "git-identity"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "node src/launcher.js",
+    "test": "node --test",
+    "start": "node dist/launcher.cjs",
+    "build": "esbuild src/launcher.js --bundle --platform=node --format=cjs --target=node24 --outfile=dist/launcher.cjs --banner:js='#!/usr/bin/env node' && chmod +x dist/launcher.cjs",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.7.0",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

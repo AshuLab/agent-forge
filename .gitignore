@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+*.pem
+*.tgz
+.DS_Store
+agents.json
+.claude/
+.vscode/
