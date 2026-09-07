@@ -63,6 +63,7 @@ The shape, for reference — the `"$schema"` line points at the published schema
 - The **installation id is not stored** — it is resolved on each run, in order: the owner of the repo you launch in, then `account`, then the App's sole installation. So the same agent works across every org the App is installed on, and it survives an uninstall/reinstall (which rotates the id).
 - Add `"account": "<org-or-user login>"` only when you run outside a matching repo and the App has more than one installation.
 - `installationId` is still accepted as an explicit override — set it to pin a specific id or skip the lookup (offline, or in a git credential helper).
+- One agent, many accounts: a **private** GitHub App only installs on the account that owns it. To run the agent on both a personal account and an org, make the App public or use one App per account — see [docs/github-app.md](docs/github-app.md).
 - `botId` is optional. When omitted it is resolved from the GitHub API using `botName` so the git author email links commits to the bot. Set it explicitly only to skip that lookup (e.g. offline).
 - Do not put provider-specific config here — providers are auto-detected from PATH.
 
@@ -93,6 +94,8 @@ On launch, `agent-forge` prints the scope GitHub actually granted (`scope` row i
 
 You need a GitHub App first — its **App ID**, a **private key**, and an **installation**. If you don't have one yet, follow [docs/github-app.md](docs/github-app.md).
 
+Running `agent-forge` with no agents configured offers to run the wizard for you.
+
 ### Guided (recommended)
 
 ```bash
@@ -113,11 +116,23 @@ Interactive:
 agent-forge
 ```
 
-Direct flags (passing both skips all prompts; passing one pre-fills it):
+Direct flags (passing both skips the menus; passing one pre-fills it, the other is prompted — or auto-picked when only one agent or provider is available):
 
 ```bash
 agent-forge --agent ops-agent --provider claude
 agent-forge --agent review-agent --provider codex
+```
+
+Before launching, it prints a summary:
+
+```
+│  provider  claude
+│  identity  ops-agent[bot]
+│  account   AshuLab            ← which account the token is for
+│  repo      AshuLab/app        ← the repo you're in (drives account)
+│  scope     write: contents, issues, pull_requests  ·  +4 read
+│  expires   ~59m               ← installation tokens last ~1h
+│  memory    CLAUDE.md          ← where systemPrompt was written
 ```
 
 Other commands:

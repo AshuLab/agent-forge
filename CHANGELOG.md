@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Documentation
+
+- Explain that a private GitHub App installs on one account only, and how to run one agent across several (public App, or one App per account).
+- Document the launch summary rows and drop the stale "record the installation id" step.
+
 ## [0.3.0] - 2026-09-07
 
 ### Added
