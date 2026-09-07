@@ -27,11 +27,11 @@
           },
           "account": {
             "type": "string",
-            "description": "Account/org login where the App is installed. The installation id is resolved from it at run time, so it survives an uninstall/reinstall. Omit when the App has a single installation."
+            "description": "Account/org login where the App is installed. Fallback for installation-id resolution when you run outside a matching repo. Needed only when the App has more than one installation. Resolution order: repo owner, then account, then the sole installation."
           },
           "installationId": {
             "type": "string",
-            "description": "Optional override. Normally the installation id is resolved from account (or the sole installation). Set this only to pin a specific id or skip the lookup (e.g. offline)."
+            "description": "Optional override. Normally the installation id is resolved (repo owner, then account, then the sole installation). Set this to pin a specific id or skip the lookup (offline, or in a git credential helper)."
           },
           "botName": {
             "type": "string",
