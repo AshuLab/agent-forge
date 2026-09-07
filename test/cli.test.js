@@ -13,4 +13,6 @@ test('positional command, flag values, dash guard', () => {
   assert.equal(run('--list').command, undefined, 'flags are not commands');
   assert.equal(run('--agent', '--provider').agent, undefined, 'dash value rejected');
   assert.equal(run('--provider', 'claude').provider, 'claude');
+  assert.equal(run('--version').version, true);
+  assert.equal(run('-v').version, true);
 });

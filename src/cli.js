@@ -1,11 +1,23 @@
+import { styleText } from 'node:util';
 import { cancel, confirm, intro, isCancel, note, outro, select, spinner, text } from '@clack/prompts';
 import { addAgent, readAgents, readAgentsOrEmpty } from './config.js';
 import { fetchAppMetadata, generateGithubAppToken, resolveBotId } from './github.js';
 import { detectAvailableProviders } from './providers.js';
+import pkg from '../package.json' with { type: 'json' };
+
+const LOGO = `
+▄▄  ▄▄▄ ▄▄▄ ▄▄  ▄▄▄      ▄▄▄ ▄▄  ▄▄  ▄▄▄ ▄▄▄
+█▄█ █ ▄ █▄  █ █  █       █▄  █ █ █▄▀ █ ▄ █▄
+█ █ ▀▄█ █▄▄ █ █  █       █   ▀▄▀ █ █ ▀▄█ █▄▄
+`;
+
+export function printVersion() {
+  console.log(pkg.version);
+}
 
 export function printHelp() {
   console.log(`
-Agent Forge
+Agent Forge v${pkg.version}
 
 Usage:
   agent-forge
@@ -13,6 +25,7 @@ Usage:
   agent-forge add                    guided setup for a new agent
   agent-forge token --agent <name>   print a fresh GitHub App token (for refresh)
   agent-forge --list
+  agent-forge --version
   agent-forge --help
 
 Requirements:
@@ -171,6 +184,7 @@ export function parseArgs() {
   const result = {
     command: args[0] && !args[0].startsWith('-') ? args[0] : undefined,
     help: false,
+    version: false,
     list: false,
     agent: undefined,
     provider: undefined,
@@ -183,6 +197,7 @@ export function parseArgs() {
     const next = args[i + 1];
 
     if (arg === '--help' || arg === '-h') result.help = true;
+    if (arg === '--version' || arg === '-v') result.version = true;
     if (arg === '--list' || arg === '-l') result.list = true;
     if (arg === '--agent' || arg === '-a') {
       result.agent = value(next);
@@ -198,5 +213,6 @@ export function parseArgs() {
 }
 
 export function showIntro() {
-  intro('Agent Forge');
+  console.log(styleText('cyan', LOGO));
+  intro(`Agent Forge ${styleText('dim', `v${pkg.version}`)}`);
 }

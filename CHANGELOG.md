@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `agent-forge --version` / `-v` prints the version.
+- Interactive launcher shows an ASCII banner and the version in its header.
+
 ## [0.2.0] - 2026-09-07
 
 ### Added
