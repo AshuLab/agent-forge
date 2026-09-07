@@ -1,7 +1,6 @@
 # Contributing
 
-Thanks for helping out. This is a small, dependency-light CLI — keep changes
-minimal and correct.
+Thanks for helping out. This is a small, dependency-light CLI — keep changes minimal and correct.
 
 ## Setup
 
@@ -17,11 +16,10 @@ Requires Node.js >= 24.
 
 - ESM only, 2-space indent, positive conditions over negations.
 - No speculative abstractions — add only what the task needs.
-- Non-trivial logic gets a case in the matching `test/<module>.test.js`.
-  `pnpm test` must pass before you open a PR.
+- Non-trivial logic gets a case in the matching `test/<module>.test.js`. `pnpm test` must pass before you open a PR.
 - Never commit `agents.json` or `*.pem` private keys (both are gitignored).
-- Keep `schema/agents.schema.json` and `schema/agents.example.json` in sync —
-  `test/schema.test.js` enforces it.
+- Keep `schema/agents.schema.json` and `schema/agents.example.json` in sync — `test/schema.test.js` enforces it.
+- Don't hard-wrap Markdown — one line per paragraph or list item.
 
 See [AGENTS.md](../AGENTS.md) for the module layout and gotchas.
 
@@ -34,5 +32,4 @@ See [AGENTS.md](../AGENTS.md) for the module layout and gotchas.
 
 ## Reporting bugs
 
-Open an issue with the command you ran, what you expected, and what happened.
-Redact App IDs, installation IDs, and key paths.
+Open an issue with the command you ran, what you expected, and what happened. Redact App IDs, installation IDs, and key paths.
