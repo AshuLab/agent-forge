@@ -1,6 +1,6 @@
 {
   "name": "@ashulab/agent-forge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Give claude/codex/antigravity their own GitHub identity: a bot account, a scoped token minted per run, git attribution to match",
   "license": "MIT",
   "author": "Diego Ghersi <ghersidl@gmail.com>",
