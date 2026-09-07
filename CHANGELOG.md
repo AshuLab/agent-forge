@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- First-run onboarding: when no agent is configured, the interactive launcher
+  offers to run the `add` wizard instead of erroring out.
+
 ## [0.1.0] - 2026-09-07
 
 First release — pre-1.0, API may still change. Not yet published to npm.
