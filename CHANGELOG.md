@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-First release — not yet published to npm.
+## [0.1.0] - 2026-09-07
+
+First release — pre-1.0, API may still change. Not yet published to npm.
 
 ### Added
 
