@@ -63,14 +63,16 @@ export async function addAgentWizard() {
     throw new Error('This App has no installations. Install it on an account or org first.');
   }
 
-  let installationId = meta.installations[0].id;
+  // The installation id is resolved at run time, not stored. Only pin the account
+  // when the App spans more than one — a single install resolves on its own.
+  let account;
   if (meta.installations.length === 1) {
-    note(`${meta.installations[0].account} (${installationId})`, 'Installation');
+    note(`${meta.installations[0].account} — resolved automatically each run`, 'Installation');
   } else {
-    installationId = keep(
+    account = keep(
       await select({
-        message: 'Installation',
-        options: meta.installations.map((i) => ({ value: i.id, label: `${i.account} (${i.id})` })),
+        message: 'Which account is this agent for?',
+        options: meta.installations.map((i) => ({ value: i.account, label: `${i.account} (${i.id})` })),
       })
     );
   }
@@ -83,9 +85,9 @@ export async function addAgentWizard() {
     name,
     label,
     appId,
-    installationId,
     botName: meta.slug,
     privateKeyPath,
+    ...(account ? { account } : {}),
     ...(systemPrompt ? { systemPrompt } : {}),
   };
 

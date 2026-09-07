@@ -57,22 +57,59 @@ export async function resolveBotId(agent) {
   return String(data.id);
 }
 
+async function listInstallations(jwtToken) {
+  const items = await githubApi('/app/installations', { jwtToken });
+  return items.map((item) => ({
+    id: String(item.id),
+    account: item.account?.login || item.account?.slug || 'unknown',
+  }));
+}
+
 // Given only App ID + key, derive slug, display name and the installations to pick from.
 export async function fetchAppMetadata(appId, privateKeyPath) {
   const privateKey = readPrivateKey(privateKeyPath, `app ${appId}`);
   const jwtToken = signAppJwt(appId, privateKey);
 
   const app = await githubApi('/app', { jwtToken });
-  const installations = await githubApi('/app/installations', { jwtToken });
 
   return {
     slug: app.slug,
     name: app.name || app.slug,
-    installations: installations.map((item) => ({
-      id: String(item.id),
-      account: item.account?.login || item.account?.slug || 'unknown',
-    })),
+    installations: await listInstallations(jwtToken),
   };
+}
+
+// Choose which installation to mint a token for. An explicit installationId wins;
+// otherwise match agent.account, or take the only installation when there is one.
+export function pickInstallation(installations, agent) {
+  if (installations.length === 0) {
+    throw new Error(`GitHub App ${agent.appId} has no installations. Install it on an account or org first.`);
+  }
+
+  if (agent.account) {
+    const want = agent.account.toLowerCase();
+    const match = installations.find((item) => item.account.toLowerCase() === want);
+    if (!match) {
+      throw new Error(
+        `GitHub App ${agent.appId} is not installed on "${agent.account}". ` +
+          `Installed on: ${installations.map((item) => item.account).join(', ')}.`
+      );
+    }
+    return match.id;
+  }
+
+  if (installations.length === 1) return installations[0].id;
+
+  throw new Error(
+    `GitHub App ${agent.appId} is installed on ${installations.length} accounts ` +
+      `(${installations.map((item) => item.account).join(', ')}). ` +
+      `Add "account" to agent "${agent.name}" to pick one.`
+  );
+}
+
+async function resolveInstallationId(agent, jwtToken) {
+  if (agent.installationId) return String(agent.installationId);
+  return pickInstallation(await listInstallations(jwtToken), agent);
 }
 
 // Optional least-privilege scoping from agents.json. `permissions` is a COMPLETE
@@ -87,8 +124,9 @@ export function buildTokenScope(agent) {
 export async function generateGithubAppToken(agent) {
   const privateKey = readPrivateKey(agent.privateKeyPath, agent.name || agent.appId);
   const jwtToken = signAppJwt(agent.appId, privateKey);
+  const installationId = await resolveInstallationId(agent, jwtToken);
 
-  const data = await githubApi(`/app/installations/${agent.installationId}/access_tokens`, {
+  const data = await githubApi(`/app/installations/${installationId}/access_tokens`, {
     jwtToken,
     body: buildTokenScope(agent),
   });

@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { note } from '@clack/prompts';
 
-const REQUIRED_FIELDS = ['name', 'appId', 'installationId', 'privateKeyPath'];
+const REQUIRED_FIELDS = ['name', 'appId', 'privateKeyPath'];
 const SCHEMA_URL = 'https://raw.githubusercontent.com/AshuLab/agent-forge/main/schema/agents.schema.json';
 
 const CONFIG_HOME = process.env.XDG_CONFIG_HOME || join(homedir(), '.config');

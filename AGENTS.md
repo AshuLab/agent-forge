@@ -39,7 +39,7 @@ Provider auth stays in the provider CLI. The launcher never handles provider API
 - `src/launcher.js` — entrypoint: arg routing, `launchAgent`, git-identity build, spawn.
 - `src/cli.js` — arg parsing, help text, interactive selection, `add` wizard.
 - `src/config.js` — locate/read/validate `agents.json`, append agents.
-- `src/github.js` — App JWT, installation tokens, bot-id resolution, App metadata.
+- `src/github.js` — App JWT, installation tokens, installation-id + bot-id resolution, App metadata.
 - `src/providers.js` — provider table, PATH detection, per-provider prompt flags.
 - `src/identity.js` — upsert the managed identity block in the memory file.
 - `test/*.test.js` — one test file per module, run by Node's built-in test runner.

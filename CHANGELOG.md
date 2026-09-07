@@ -12,11 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Launch summary and `agent-forge token` now report the scope GitHub actually
   granted the installation token, so a narrowed `permissions` allowlist that
   drops a needed scope is visible instead of surfacing later as a 403.
+- `account` field on an agent: the installation id is now resolved from the App
+  on each run (by `account`, or the sole installation), so it survives an
+  uninstall/reinstall that rotates the id.
 
 ### Changed
 
 - `generateGithubAppToken` returns `{ token, permissions, repositorySelection }`
   instead of a bare token string.
+- `installationId` is no longer required or written by the `add` wizard. It stays
+  accepted as an explicit override.
 
 ## [0.1.0] - 2026-09-07
 

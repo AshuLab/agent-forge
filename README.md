@@ -63,7 +63,6 @@ required-field checks and typo detection:
       "name": "ops-agent",
       "label": "Ops Agent",
       "appId": "123456",
-      "installationId": "987654",
       "botName": "ops-agent",
       "privateKeyPath": "~/.ssh/ops-agent.private-key.pem",
       "systemPrompt": "You are Ops Agent, a senior DevOps engineer. Prefer safe, minimal changes and explain operational risks clearly."
@@ -72,6 +71,12 @@ required-field checks and typo detection:
 }
 ```
 
+- The **installation id is not stored** — it is resolved from the App on each run.
+  When the App has one installation that is all it needs. When it is installed on
+  several accounts, add `"account": "<org-or-user login>"` to say which one. This
+  survives an uninstall/reinstall, which rotates the id.
+- `installationId` is still accepted as an explicit override — set it only to pin
+  a specific id or skip the lookup (e.g. offline).
 - `botId` is optional. When omitted it is resolved from the GitHub API using
   `botName` so the git author email links commits to the bot. Set it explicitly
   only to skip that lookup (e.g. offline).
@@ -122,17 +127,17 @@ agent-forge add
 
 You provide the **GitHub App ID** and the **path to its private key**. The wizard
 derives the rest from the GitHub API — slug (`botName`), bot user id, and the
-installation (auto-selected when there is only one) — asks for a label and an
-optional system prompt, mints a test token to confirm it works, and writes the
-entry. It writes to the resolved config path — the global registry
+account (asked only when the App is installed on more than one) — asks for a
+label and an optional system prompt, mints a test token to confirm it works, and
+writes the entry. It writes to the resolved config path — the global registry
 (`~/.config/agent-forge/agents.json`) unless `$AGENT_FORGE_CONFIG` or an
 existing `./agents.json` redirects it.
 
 ### Manual
 
 Copy one agent object inside the `agents` array and set unique values for `name`,
-`label`, `appId`, `installationId`, `botName`, `privateKeyPath`. Make sure the
-private key file exists and is readable.
+`label`, `appId`, `botName`, `privateKeyPath` — plus `account` if the App has
+more than one installation. Make sure the private key file exists and is readable.
 
 ## Launch
 
