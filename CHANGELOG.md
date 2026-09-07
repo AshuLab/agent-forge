@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Launch summary and `agent-forge token` now report the scope GitHub actually
+  granted the installation token, so a narrowed `permissions` allowlist that
+  drops a needed scope is visible instead of surfacing later as a 403.
+
+### Changed
+
+- `generateGithubAppToken` returns `{ token, permissions, repositorySelection }`
+  instead of a bare token string.
+
 ## [0.1.0] - 2026-09-07
 
 First release — pre-1.0, API may still change. Not yet published to npm.

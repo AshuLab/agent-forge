@@ -85,9 +85,28 @@ per agent with either or both of:
 ```json
 {
   "repositories": ["some-repo", "another-repo"],
-  "permissions": { "contents": "write", "pull_requests": "write" }
+  "permissions": { "contents": "read", "pull_requests": "write" }
 }
 ```
+
+**`permissions` is a complete allowlist, not a patch.** GitHub grants *only* the
+keys you list and drops everything else — even permissions the GitHub App itself
+has. If you set `permissions` at all, you must list every scope the agent needs.
+Common cases:
+
+| The agent needs to… | Minimum `permissions` |
+| --- | --- |
+| Push commits / open PRs | `{ "contents": "write", "pull_requests": "write" }` |
+| Review PRs (incl. inline comments) | `{ "contents": "read", "pull_requests": "write" }` |
+| Read-only (clone, read issues) | `{ "contents": "read" }` |
+
+Omitting the `permissions` key entirely is the safe default — the token then
+carries whatever the App grants. `repositories` works the same way: list it and
+the token can only touch those repos.
+
+On launch, `agent-forge` prints the scope GitHub actually granted (`token` row in
+the summary); `agent-forge token --agent <name>` prints it to stderr. If a call
+fails with `403 Resource not accessible by integration`, check that row first.
 
 ## Add an agent
 
