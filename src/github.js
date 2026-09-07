@@ -87,7 +87,7 @@ export function pickInstallation(installations, agent) {
   }
 
   if (agent.account) {
-    const want = agent.account.toLowerCase();
+    const want = String(agent.account).toLowerCase();
     const match = installations.find((item) => item.account.toLowerCase() === want);
     if (!match) {
       throw new Error(
@@ -108,6 +108,8 @@ export function pickInstallation(installations, agent) {
 }
 
 async function resolveInstallationId(agent, jwtToken) {
+  // ponytail: an extra /app/installations GET per mint. Set `installationId` on the
+  // agent to skip it — worth doing when `token` runs in a git credential helper.
   if (agent.installationId) return String(agent.installationId);
   return pickInstallation(await listInstallations(jwtToken), agent);
 }

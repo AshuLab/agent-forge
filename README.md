@@ -189,6 +189,9 @@ git config credential.https://github.com.helper \
   '!f() { test "$1" = get && echo username=x-access-token && echo "password=$(agent-forge token --agent ops-agent)"; }; f'
 ```
 
+For the credential-helper case, set `installationId` explicitly on the agent —
+`token` then runs on every push, and the id saves it one API round-trip each time.
+
 ## Contributing
 
 See [CONTRIBUTING.md](.github/CONTRIBUTING.md) and [AGENTS.md](./AGENTS.md).

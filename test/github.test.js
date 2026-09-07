@@ -27,6 +27,10 @@ test('pickInstallation: no installations throws', () => {
   assert.throws(() => pickInstallation([], { appId: '9' }), /no installations/);
 });
 
+test('pickInstallation: a non-string account fails cleanly, not with a TypeError', () => {
+  assert.throws(() => pickInstallation(installs, { account: 12345, appId: '9' }), /not installed on "12345"/);
+});
+
 test('buildTokenScope: nothing set means no scoping (inherit App grant)', () => {
   assert.deepEqual(buildTokenScope({ name: 'a' }), {});
 });
