@@ -91,8 +91,11 @@ export async function addAgentWizard({ embedded = false } = {}) {
 
   const check = spinner();
   check.start('Minting a test token');
-  await generateGithubAppToken(agent);
-  check.stop('Test token ok');
+  const { permissions } = await generateGithubAppToken(agent);
+  const scope = Object.entries(permissions)
+    .map(([name, level]) => `${name}:${level}`)
+    .join(' ');
+  check.stop(scope ? `Test token ok · ${scope}` : 'Test token ok');
 
   const path = addAgent(agent);
   if (embedded) {
