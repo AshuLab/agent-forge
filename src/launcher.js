@@ -3,9 +3,10 @@ import { relative } from 'node:path';
 import { styleText } from 'node:util';
 import { cancel, log, note, outro, spinner } from '@clack/prompts';
 import { readAgents, listAgents } from './config.js';
-import { generateGithubAppToken, resolveBotId } from './github.js';
+import { currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
 import { detectAvailableProviders, getProviderInfo, getProviderPromptArgs } from './providers.js';
 import { syncIdentityFile } from './identity.js';
+import { formatExpiry, formatScope } from './format.js';
 import { addAgentWizard, interactiveSelection, parseArgs, printHelp, printVersion, showIntro } from './cli.js';
 
 function findAgent(agentName) {
@@ -34,7 +35,8 @@ async function launchAgent(agentName, providerName) {
 
   const s = spinner();
   s.start('Minting installation token');
-  const { token: githubToken, permissions, repositorySelection } = await generateGithubAppToken(agent);
+  const { token: githubToken, account, expiresAt, permissions, repositorySelection } =
+    await generateGithubAppToken(agent);
   const botId = await resolveBotId(agent);
   const gitIdentity = buildGitIdentity(agent, botId);
   s.stop(`Token ready for ${styleText('green', gitIdentity.GIT_AUTHOR_NAME)}`);
@@ -48,17 +50,21 @@ async function launchAgent(agentName, providerName) {
     ...gitIdentity,
   };
 
-  const scopeEntries = Object.entries(permissions);
-  const scopeText = scopeEntries.length
-    ? scopeEntries.map(([name, level]) => `${name}:${level}`).join(' ')
-    : 'full installation scope';
+  const narrowed = Boolean(agent.permissions) || Boolean(agent.repositories);
+  const scopeText = formatScope(permissions, narrowed);
+  const repoSlug = currentRepoSlug();
 
   const row = (label, value) => `${styleText('dim', label.padEnd(10))}${value}`;
   const summary = [
     row('provider', styleText(['cyan', 'bold'], providerName)),
     row('identity', styleText('green', gitIdentity.GIT_AUTHOR_NAME)),
-    row('token', styleText('dim', repositorySelection === 'selected' ? `${scopeText} · selected repos` : scopeText)),
   ];
+  if (account) summary.push(row('account', styleText('yellow', account)));
+  if (repoSlug) summary.push(row('repo', styleText('dim', `${repoSlug.owner}/${repoSlug.repo}`)));
+  summary.push(
+    row('scope', styleText('dim', repositorySelection === 'selected' ? `${scopeText}  ·  selected repos` : scopeText))
+  );
+  if (expiresAt) summary.push(row('expires', styleText('dim', formatExpiry(expiresAt))));
   if (identityFile) {
     summary.push(row('memory', styleText('dim', relative(process.cwd(), identityFile) || identityFile)));
   }

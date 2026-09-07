@@ -38,6 +38,7 @@ Provider auth stays in the provider CLI. The launcher never handles provider API
 - `src/github.js` — App JWT, installation tokens, installation-id + bot-id resolution, App metadata.
 - `src/providers.js` — provider table, PATH detection, per-provider prompt flags.
 - `src/identity.js` — upsert the managed identity block in the memory file.
+- `src/format.js` — presentation helpers for the launch summary (scope, expiry).
 - `test/*.test.js` — one test file per module, run by Node's built-in test runner.
 - `schema/agents.schema.json` — JSON Schema for `agents.json`, kept in sync with `schema/agents.example.json` (`test/schema.test.js` enforces it).
 - `docs/github-app.md` — how a human creates the GitHub App, and how an agent can assist. Point users here when they lack an App ID / key / installation.

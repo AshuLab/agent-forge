@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Launch summary adds `account`, `repo` and `expires` rows, and the scope line is compacted (writes listed, reads counted) unless the agent narrows `permissions`/`repositories`.
 - Cancelling a prompt shows `✖ Cancelled`; declining first-run onboarding exits with a plain hint instead of a red cancel.
 
 ## [0.2.0] - 2026-09-07
