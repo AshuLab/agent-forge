@@ -75,19 +75,28 @@ export async function fetchAppMetadata(appId, privateKeyPath) {
   };
 }
 
+// Optional least-privilege scoping from agents.json. `permissions` is a COMPLETE
+// allowlist: GitHub drops anything not listed, regardless of what the App grants.
+export function buildTokenScope(agent) {
+  const scope = {};
+  if (Array.isArray(agent.repositories)) scope.repositories = agent.repositories;
+  if (agent.permissions && typeof agent.permissions === 'object') scope.permissions = agent.permissions;
+  return scope;
+}
+
 export async function generateGithubAppToken(agent) {
   const privateKey = readPrivateKey(agent.privateKeyPath, agent.name || agent.appId);
   const jwtToken = signAppJwt(agent.appId, privateKey);
 
-  // Optional least-privilege scoping from agents.json.
-  const scope = {};
-  if (Array.isArray(agent.repositories)) scope.repositories = agent.repositories;
-  if (agent.permissions && typeof agent.permissions === 'object') scope.permissions = agent.permissions;
-
   const data = await githubApi(`/app/installations/${agent.installationId}/access_tokens`, {
     jwtToken,
-    body: Object.keys(scope).length > 0 ? scope : {},
+    body: buildTokenScope(agent),
   });
 
-  return data.token;
+  return {
+    token: data.token,
+    // What GitHub actually granted, after both the App's config and our scoping.
+    permissions: data.permissions || {},
+    repositorySelection: data.repository_selection || 'all',
+  };
 }
