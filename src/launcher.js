@@ -34,7 +34,7 @@ async function launchAgent(agentName, providerName) {
 
   const s = spinner();
   s.start('Minting installation token');
-  const githubToken = await generateGithubAppToken(agent);
+  const { token: githubToken, permissions, repositorySelection } = await generateGithubAppToken(agent);
   const botId = await resolveBotId(agent);
   const gitIdentity = buildGitIdentity(agent, botId);
   s.stop(`Token ready for ${styleText('green', gitIdentity.GIT_AUTHOR_NAME)}`);
@@ -48,10 +48,16 @@ async function launchAgent(agentName, providerName) {
     ...gitIdentity,
   };
 
+  const scopeEntries = Object.entries(permissions);
+  const scopeText = scopeEntries.length
+    ? scopeEntries.map(([name, level]) => `${name}:${level}`).join(' ')
+    : 'full installation scope';
+
   const row = (label, value) => `${styleText('dim', label.padEnd(10))}${value}`;
   const summary = [
     row('provider', styleText(['cyan', 'bold'], providerName)),
     row('identity', styleText('green', gitIdentity.GIT_AUTHOR_NAME)),
+    row('token', styleText('dim', repositorySelection === 'selected' ? `${scopeText} · selected repos` : scopeText)),
   ];
   if (identityFile) {
     summary.push(row('memory', styleText('dim', relative(process.cwd(), identityFile) || identityFile)));
@@ -100,7 +106,10 @@ async function main() {
     if (!flags.agent) {
       throw new Error('Usage: agent-forge token --agent <name>');
     }
-    process.stdout.write(await generateGithubAppToken(findAgent(flags.agent)));
+    const minted = await generateGithubAppToken(findAgent(flags.agent));
+    const scope = Object.entries(minted.permissions).map(([name, level]) => `${name}:${level}`).join(' ');
+    if (scope) process.stderr.write(`scope: ${scope}${minted.repositorySelection === 'selected' ? ' (selected repos)' : ''}\n`);
+    process.stdout.write(minted.token);
     return;
   }
 

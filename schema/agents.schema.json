@@ -61,7 +61,7 @@
           "permissions": {
             "type": "object",
             "additionalProperties": { "type": "string" },
-            "description": "Least-privilege: limit the installation token permissions, e.g. { \"contents\": \"write\" }"
+            "description": "Least-privilege: complete allowlist of installation token permissions. GitHub grants ONLY these keys and drops the rest, even ones the App has. Reviewing PRs needs { \"contents\": \"read\", \"pull_requests\": \"write\" }. Omit this key to inherit the App's full grant."
           },
           "providers": {
             "type": "object",
