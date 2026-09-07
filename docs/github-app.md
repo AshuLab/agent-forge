@@ -1,20 +1,14 @@
 # Creating the GitHub App
 
-`agent-forge` runs each agent under a **GitHub App installation**. That gives
-you:
+`agent-forge` runs each agent under a **GitHub App installation**. That gives you:
 
-- a distinct bot identity — commits and comments show up as `your-app[bot]`,
-  not as you
+- a distinct bot identity — commits and comments show up as `your-app[bot]`, not as you
 - short-lived tokens (~1 hour), minted per run, never stored
 - per-repo, least-privilege scoping
 
 You create the App once. After that, `agent-forge add` wires it in.
 
-> **Can an agent do this for me?** Not the creation itself — GitHub has no REST
-> endpoint to create an App from a normal token; it needs the web UI (or the
-> [manifest flow](#appendix-manifest-flow)). An agent *can* fill in `agents.json`,
-> run the wizard, mint a test token, and read API errors back to you. See
-> [Notes for an assisting agent](#notes-for-an-assisting-agent).
+> **Can an agent do this for me?** Not the creation itself — GitHub has no REST endpoint to create an App from a normal token; it needs the web UI (or the [manifest flow](#appendix-manifest-flow)). An agent *can* fill in `agents.json`, run the wizard, mint a test token, and read API errors back to you. See [Notes for an assisting agent](#notes-for-an-assisting-agent).
 
 ## 1. Open the "new App" form
 
@@ -53,8 +47,7 @@ You can widen permissions later; each installation must then re-approve.
 Click **Create GitHub App**. From the App's settings page:
 
 1. **App ID** — shown near the top (`App ID: 123456`). This is `appId`.
-2. **Private key** — scroll to *Private keys* → **Generate a private key**. A
-   `.pem` downloads. Move it somewhere safe and lock it down:
+2. **Private key** — scroll to *Private keys* → **Generate a private key**. A `.pem` downloads. Move it somewhere safe and lock it down:
 
    ```bash
    mv ~/Downloads/your-app.*.private-key.pem ~/.ssh/your-app.pem
@@ -62,10 +55,7 @@ Click **Create GitHub App**. From the App's settings page:
    ```
 
    This path is `privateKeyPath`. Never commit it (`*.pem` is git-ignored here).
-3. **Installation** — go to the *Install App* tab → **Install** → pick the
-   account/org → choose **All repositories** or a specific set. After installing,
-   the URL ends in `.../installations/<number>` — that number is `installationId`
-   (or let the wizard find it).
+3. **Installation** — go to the *Install App* tab → **Install** → pick the account/org → choose **All repositories** or a specific set. After installing, the URL ends in `.../installations/<number>` — that number is `installationId` (or let the wizard find it).
 
 ## 5. Wire it into agent-forge
 
@@ -73,10 +63,7 @@ Click **Create GitHub App**. From the App's settings page:
 agent-forge add
 ```
 
-Give it the **App ID** and the **private key path**. The wizard calls the GitHub
-API to fill in the rest — slug (`botName`), bot user id (`botId`), and the
-installation (auto-selected when there's only one) — mints a test token, and
-writes the entry to your registry.
+Give it the **App ID** and the **private key path**. The wizard calls the GitHub API to fill in the rest — slug (`botName`), bot user id (`botId`), and the installation (auto-selected when there's only one) — mints a test token, and writes the entry to your registry.
 
 Manual equivalent in `agents.json`:
 
@@ -114,17 +101,14 @@ You cannot create the App, but you can:
 
 - draft the `agents.json` entry and run `agent-forge add`
 - run `agent-forge token --agent <name>` and the `curl` check above
-- read GitHub API error bodies and map them to the table above (e.g. a `403`
-  `Resource not accessible by integration` names the missing permission)
+- read GitHub API error bodies and map them to the table above (e.g. a `403` `Resource not accessible by integration` names the missing permission)
 - confirm the key file exists and is `chmod 600`
 
 Hand the human the exact URL for step 1 and the permission list for step 3.
 
 ## Appendix: manifest flow
 
-GitHub can pre-fill the creation form from a JSON manifest, so the human only
-clicks "Create". This is not automated by `agent-forge` yet (you exchange the
-returned `code` manually), but the manifest saves the form-filling:
+GitHub can pre-fill the creation form from a JSON manifest, so the human only clicks "Create". This is not automated by `agent-forge` yet (you exchange the returned `code` manually), but the manifest saves the form-filling:
 
 ```json
 {
@@ -141,8 +125,4 @@ returned `code` manually), but the manifest saves the form-filling:
 }
 ```
 
-POST it as a `manifest` form field to
-`https://github.com/settings/apps/new?state=<random>` (or the org equivalent),
-let the human click **Create**, then exchange the `code` GitHub redirects with:
-`POST https://api.github.com/app-manifests/{code}/conversions` → returns `id`,
-`pem`, and secrets in one response.
+POST it as a `manifest` form field to `https://github.com/settings/apps/new?state=<random>` (or the org equivalent), let the human click **Create**, then exchange the `code` GitHub redirects with: `POST https://api.github.com/app-manifests/{code}/conversions` → returns `id`, `pem`, and secrets in one response.
