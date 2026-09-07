@@ -171,7 +171,8 @@ export async function interactiveSelection(defaults = {}) {
           );
   }
 
-  if (!keep(await confirm({ message: `Launch ${agentChoice} with ${providerChoice}?` }))) {
+  const launchPrompt = `Launch ${styleText('green', agentChoice)} with ${styleText(['cyan', 'bold'], providerChoice)}?`;
+  if (!keep(await confirm({ message: launchPrompt }))) {
     cancel('Cancelled.');
     process.exit(0);
   }
