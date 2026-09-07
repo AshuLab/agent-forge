@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First-run onboarding: when no agent is configured, the interactive launcher
   offers to run the `add` wizard instead of erroring out.
 
+### Changed
+
+- Interactive launcher auto-selects the agent or provider when only one is
+  available, instead of showing a single-option menu.
+
 ## [0.1.0] - 2026-09-07
 
 First release — pre-1.0, API may still change. Not yet published to npm.

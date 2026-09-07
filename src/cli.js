@@ -126,12 +126,15 @@ export async function interactiveSelection(defaults = {}) {
     throw new Error(`Agent not found: ${agentChoice}`);
   }
   if (!agentChoice) {
-    agentChoice = keep(
-      await select({
-        message: 'Which agent do you want to launch?',
-        options: agents.map((agent) => ({ value: agent.name, label: agent.label || agent.name })),
-      })
-    );
+    agentChoice =
+      agents.length === 1
+        ? agents[0].name
+        : keep(
+            await select({
+              message: 'Which agent do you want to launch?',
+              options: agents.map((agent) => ({ value: agent.name, label: agent.label || agent.name })),
+            })
+          );
   }
 
   let providerChoice = defaults.provider;
@@ -139,12 +142,15 @@ export async function interactiveSelection(defaults = {}) {
     throw new Error(`The provider ${providerChoice} is not installed or not available in PATH.`);
   }
   if (!providerChoice) {
-    providerChoice = keep(
-      await select({
-        message: 'Which provider do you want to use?',
-        options: availableProviders.map((provider) => ({ value: provider.value, label: provider.label })),
-      })
-    );
+    providerChoice =
+      availableProviders.length === 1
+        ? availableProviders[0].value
+        : keep(
+            await select({
+              message: 'Which provider do you want to use?',
+              options: availableProviders.map((provider) => ({ value: provider.value, label: provider.label })),
+            })
+          );
   }
 
   if (!keep(await confirm({ message: `Launch ${agentChoice} with ${providerChoice}?` }))) {
