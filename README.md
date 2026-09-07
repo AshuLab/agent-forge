@@ -87,7 +87,7 @@ By default the installation token carries the full installation scope. Narrow it
 
 Omitting the `permissions` key entirely is the safe default — the token then carries whatever the App grants. `repositories` works the same way: list it and the token can only touch those repos.
 
-On launch, `agent-forge` prints the scope GitHub actually granted (`token` row in the summary); `agent-forge token --agent <name>` prints it to stderr. If a call fails with `403 Resource not accessible by integration`, check that row first.
+On launch, `agent-forge` prints the scope GitHub actually granted (`scope` row in the summary, alongside the `account` the token is for); `agent-forge token --agent <name>` prints it to stderr. If a call fails with `403 Resource not accessible by integration`, check that row first.
 
 ## Add an agent
 

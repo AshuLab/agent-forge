@@ -116,7 +116,7 @@ export function parseGithubRemote(url) {
   return match ? { owner: match[1], repo: match[2] } : null;
 }
 
-function currentRepoSlug() {
+export function currentRepoSlug() {
   try {
     const url = execFileSync('git', ['remote', 'get-url', 'origin'], {
       stdio: ['ignore', 'pipe', 'ignore'],
@@ -130,24 +130,27 @@ function currentRepoSlug() {
 async function installationForRepo(slug, jwtToken) {
   try {
     const data = await githubApi(`/repos/${slug.owner}/${slug.repo}/installation`, { jwtToken });
-    return String(data.id);
+    return { id: String(data.id), account: data.account?.login || data.account?.slug || null };
   } catch {
     return null; // App has no installation reaching this repo
   }
 }
 
-// Resolution order: explicit installationId, then the current repo's owner, then
-// agent.account, then the App's sole installation (see pickInstallation).
-async function resolveInstallationId(agent, jwtToken) {
-  if (agent.installationId) return String(agent.installationId);
+// Returns { id, account }. Resolution order: explicit installationId (account
+// unknown), then the current repo's owner, then agent.account, then the App's
+// sole installation (see pickInstallation).
+async function resolveInstallation(agent, jwtToken) {
+  if (agent.installationId) return { id: String(agent.installationId), account: null };
 
   const slug = currentRepoSlug();
   if (slug) {
-    const id = await installationForRepo(slug, jwtToken);
-    if (id) return id;
+    const hit = await installationForRepo(slug, jwtToken);
+    if (hit) return hit;
   }
 
-  return pickInstallation(await listInstallations(jwtToken), agent);
+  const installations = await listInstallations(jwtToken);
+  const id = pickInstallation(installations, agent);
+  return { id, account: installations.find((item) => item.id === id)?.account ?? null };
 }
 
 // Optional least-privilege scoping from agents.json. `permissions` is a COMPLETE
@@ -162,7 +165,7 @@ export function buildTokenScope(agent) {
 export async function generateGithubAppToken(agent) {
   const privateKey = readPrivateKey(agent.privateKeyPath, agent.name || agent.appId);
   const jwtToken = signAppJwt(agent.appId, privateKey);
-  const installationId = await resolveInstallationId(agent, jwtToken);
+  const { id: installationId, account } = await resolveInstallation(agent, jwtToken);
 
   const data = await githubApi(`/app/installations/${installationId}/access_tokens`, {
     jwtToken,
@@ -171,6 +174,8 @@ export async function generateGithubAppToken(agent) {
 
   return {
     token: data.token,
+    account,
+    expiresAt: data.expires_at || null,
     // What GitHub actually granted, after both the App's config and our scoping.
     permissions: data.permissions || {},
     repositorySelection: data.repository_selection || 'all',
