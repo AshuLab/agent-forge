@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -103,14 +104,49 @@ export function pickInstallation(installations, agent) {
   throw new Error(
     `GitHub App ${agent.appId} is installed on ${installations.length} accounts ` +
       `(${installations.map((item) => item.account).join(', ')}). ` +
-      `Add "account" to agent "${agent.name}" to pick one.`
+      `Run inside a repo under one of them, or add "account" to agent "${agent.name}".`
   );
 }
 
+// owner/repo from a github.com remote URL (ssh, https, git://). null otherwise.
+export function parseGithubRemote(url) {
+  const match = String(url)
+    .trim()
+    .match(/github\.com[:/]([^/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/);
+  return match ? { owner: match[1], repo: match[2] } : null;
+}
+
+function currentRepoSlug() {
+  try {
+    const url = execFileSync('git', ['remote', 'get-url', 'origin'], {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString();
+    return parseGithubRemote(url);
+  } catch {
+    return null;
+  }
+}
+
+async function installationForRepo(slug, jwtToken) {
+  try {
+    const data = await githubApi(`/repos/${slug.owner}/${slug.repo}/installation`, { jwtToken });
+    return String(data.id);
+  } catch {
+    return null; // App has no installation reaching this repo
+  }
+}
+
+// Resolution order: explicit installationId, then the current repo's owner, then
+// agent.account, then the App's sole installation (see pickInstallation).
 async function resolveInstallationId(agent, jwtToken) {
-  // ponytail: an extra /app/installations GET per mint. Set `installationId` on the
-  // agent to skip it — worth doing when `token` runs in a git credential helper.
   if (agent.installationId) return String(agent.installationId);
+
+  const slug = currentRepoSlug();
+  if (slug) {
+    const id = await installationForRepo(slug, jwtToken);
+    if (id) return id;
+  }
+
   return pickInstallation(await listInstallations(jwtToken), agent);
 }
 

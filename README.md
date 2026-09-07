@@ -71,12 +71,14 @@ required-field checks and typo detection:
 }
 ```
 
-- The **installation id is not stored** — it is resolved from the App on each run.
-  When the App has one installation that is all it needs. When it is installed on
-  several accounts, add `"account": "<org-or-user login>"` to say which one. This
-  survives an uninstall/reinstall, which rotates the id.
-- `installationId` is still accepted as an explicit override — set it only to pin
-  a specific id or skip the lookup (e.g. offline).
+- The **installation id is not stored** — it is resolved on each run, in order:
+  the owner of the repo you launch in, then `account`, then the App's sole
+  installation. So the same agent works across every org the App is installed on,
+  and it survives an uninstall/reinstall (which rotates the id).
+- Add `"account": "<org-or-user login>"` only when you run outside a matching repo
+  and the App has more than one installation.
+- `installationId` is still accepted as an explicit override — set it to pin a
+  specific id or skip the lookup (offline, or in a git credential helper).
 - `botId` is optional. When omitted it is resolved from the GitHub API using
   `botName` so the git author email links commits to the bot. Set it explicitly
   only to skip that lookup (e.g. offline).
@@ -189,8 +191,8 @@ git config credential.https://github.com.helper \
   '!f() { test "$1" = get && echo username=x-access-token && echo "password=$(agent-forge token --agent ops-agent)"; }; f'
 ```
 
-For the credential-helper case, set `installationId` explicitly on the agent —
-`token` then runs on every push, and the id saves it one API round-trip each time.
+Resolution still works here — the repo you push from is the one used. Setting
+`installationId` explicitly just skips the lookup on every push.
 
 ## Contributing
 

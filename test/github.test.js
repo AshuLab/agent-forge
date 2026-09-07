@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTokenScope, pickInstallation } from '../src/github.js';
+import { buildTokenScope, parseGithubRemote, pickInstallation } from '../src/github.js';
 
 const installs = [
   { id: '1', account: 'vemec' },
@@ -29,6 +29,20 @@ test('pickInstallation: no installations throws', () => {
 
 test('pickInstallation: a non-string account fails cleanly, not with a TypeError', () => {
   assert.throws(() => pickInstallation(installs, { account: 12345, appId: '9' }), /not installed on "12345"/);
+});
+
+test('parseGithubRemote: ssh, https, with and without .git and trailing slash', () => {
+  const want = { owner: 'AshuLab', repo: 'agent-forge' };
+  assert.deepEqual(parseGithubRemote('git@github.com:AshuLab/agent-forge.git'), want);
+  assert.deepEqual(parseGithubRemote('https://github.com/AshuLab/agent-forge.git'), want);
+  assert.deepEqual(parseGithubRemote('https://github.com/AshuLab/agent-forge'), want);
+  assert.deepEqual(parseGithubRemote('ssh://git@github.com/AshuLab/agent-forge.git\n'), want);
+  assert.deepEqual(parseGithubRemote('https://github.com/AshuLab/agent-forge/'), want);
+});
+
+test('parseGithubRemote: non-github or junk is null', () => {
+  assert.equal(parseGithubRemote('git@gitlab.com:foo/bar.git'), null);
+  assert.equal(parseGithubRemote(''), null);
 });
 
 test('buildTokenScope: nothing set means no scoping (inherit App grant)', () => {

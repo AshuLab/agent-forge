@@ -15,9 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   report the scope GitHub actually granted the installation token, so a narrowed
   `permissions` allowlist that drops a needed scope is visible instead of
   surfacing later as a 403.
-- `account` field on an agent: the installation id is now resolved from the App
-  on each run (by `account`, or the sole installation), so it survives an
-  uninstall/reinstall that rotates the id.
+- The installation id is now resolved on each run — from the owner of the repo
+  you launch in, then the optional `account` field, then the App's sole
+  installation. The same agent works across every org the App is on, and it
+  survives an uninstall/reinstall that rotates the id.
 
 ### Changed
 
