@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `agent-forge --version` / `-v` prints the version.
 - Interactive launcher shows an ASCII banner and the version in its header.
+- The "Launch … with …?" prompt colors the agent and provider names.
 
 ## [0.2.0] - 2026-09-07
 
