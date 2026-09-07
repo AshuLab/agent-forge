@@ -5,7 +5,6 @@
       "name": "ops-agent",
       "label": "Ops Agent",
       "appId": "000000",
-      "installationId": "00000000",
       "botName": "ops-agent",
       "privateKeyPath": "~/.ssh/ops-agent.private-key.pem",
       "systemPrompt": "You are Ops Agent, a senior DevOps engineer. Prefer safe, minimal changes and explain operational risks clearly."
