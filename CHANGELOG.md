@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Interactive launcher shows an ASCII banner and the version in its header.
 - The "Launch … with …?" prompt colors the agent and provider names.
 
+### Changed
+
+- Cancelling a prompt shows `✖ Cancelled`; declining first-run onboarding exits with a plain hint instead of a red cancel.
+
 ## [0.2.0] - 2026-09-07
 
 ### Added
