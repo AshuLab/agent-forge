@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-07
+
 ### Added
 
 - First-run onboarding: when no agent is configured, the interactive launcher offers to run the `add` wizard instead of erroring out.
