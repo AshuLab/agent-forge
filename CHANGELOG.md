@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-07
+
 ### Changed
 
 - Identity is injected per process for `claude` (`--append-system-prompt`) and `codex` (`-c developer_instructions`) — no `CLAUDE.md` / `AGENTS.md` is written, so the repo is untouched and several agents can share a worktree. Only `antigravity` still falls back to a managed `AGENTS.md` block.
