@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Identity is injected per process for `claude` (`--append-system-prompt`) and `codex` (`-c developer_instructions`) — no `CLAUDE.md` / `AGENTS.md` is written, so the repo is untouched and several agents can share a worktree. Only `antigravity` still falls back to a managed `AGENTS.md` block.
+
+### Removed
+
+- The `account` agent field. The installation id is resolved from the repo you launch in, then the App's sole installation; an App on several accounts must be launched from inside a repo it covers. The `add` wizard no longer asks.
+
 ### Documentation
 
 - Explain that a private GitHub App installs on one account only, and how to run one agent across several (public App, or one App per account).

@@ -42,9 +42,12 @@ export function getProviderPromptArgs(providerName, agent) {
     return [];
   }
 
-  // Only claude gets a flag: --append-system-prompt lands in the real system
-  // prompt, stronger than the CLAUDE.md memory block. codex/antigravity read
-  // their identity from AGENTS.md (syncIdentityFile) — passing it as a CLI arg
-  // there is a fake first user turn (codex) or headless --print (antigravity).
-  return providerName === 'claude' ? ['--append-system-prompt', prompt] : [];
+  // Per-process identity, no repo file touched:
+  //   claude — --append-system-prompt lands in the real system prompt
+  //   codex  — -c developer_instructions appends a developer message (a real
+  //            append, unlike model_instructions_file which replaces the base)
+  // antigravity has no such flag: it reads AGENTS.md, written by syncIdentityFile.
+  if (providerName === 'claude') return ['--append-system-prompt', prompt];
+  if (providerName === 'codex') return ['-c', `developer_instructions=${JSON.stringify(prompt)}`];
+  return [];
 }

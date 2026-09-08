@@ -4,9 +4,10 @@ import { join } from 'node:path';
 const START = '<!-- agent-forge:identity:start -->';
 const END = '<!-- agent-forge:identity:end -->';
 
-// Memory file each provider CLI loads on startup, so the identity also reaches
-// subagents the provider spawns (not just its main thread).
-const MEMORY_FILE = { claude: 'CLAUDE.md', codex: 'AGENTS.md', antigravity: 'AGENTS.md' };
+// Fallback for providers with no per-process identity flag (see
+// getProviderPromptArgs): write the prompt into the memory file the CLI loads
+// on startup. Only antigravity — claude and codex take a CLI flag.
+const MEMORY_FILE = { antigravity: 'AGENTS.md' };
 
 export function upsertIdentityBlock(content, prompt) {
   const block = `${START}\n${prompt}\n${END}`;
