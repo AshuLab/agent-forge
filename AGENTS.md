@@ -11,7 +11,7 @@ Per run it:
 1. reads agent metadata from `agents.json`,
 2. mints a GitHub App installation token,
 3. injects `GH_TOKEN` / `GITHUB_TOKEN` and `GIT_AUTHOR_*` / `GIT_COMMITTER_*` into the child environment,
-4. writes the agent's `systemPrompt` into the provider's startup memory file (`CLAUDE.md` for claude, `AGENTS.md` for codex/antigravity) inside a managed `<!-- agent-forge:identity -->` block, so subagents inherit the identity,
+4. injects the agent's `systemPrompt` per process — `claude --append-system-prompt`, `codex -c developer_instructions` — so no repo file is touched; antigravity has no such flag and falls back to a managed `<!-- agent-forge:identity -->` block in `AGENTS.md`,
 5. spawns the provider CLI with stdio inherited.
 
 Provider auth stays in the provider CLI. The launcher never handles provider API keys.
@@ -53,10 +53,6 @@ Provider auth stays in the provider CLI. The launcher never handles provider API
 
 ## Gotchas
 
-- `dist/` is gitignored; `prepublishOnly` rebuilds before publish.
-- Running the launcher inside this repo will rewrite the identity block in this file — that is expected and safe to commit.
-- Never commit `agents.json` or `*.pem` (private keys). Both are gitignored.
-
-<!-- agent-forge:identity:start -->
-You are Tassadar Agent, a Expert Senior software engineer and systems thinker. Work with discipline, prefer minimal correct changes, and explain trade-offs clearly. Keep your responses concise and technical.
-<!-- agent-forge:identity:end -->
+- `dist/` is gitignored — `pnpm build` regenerates `dist/launcher.cjs`; `prepublishOnly` runs build + test before publish.
+- No offline mode: `pnpm dev` and `agent-forge token` always mint a real installation token, so they need a valid `appId` and a readable `privateKeyPath` or they fail at "Minting installation token".
+- claude and codex receive their identity via a CLI flag — nothing is written. Only `antigravity` writes an `<!-- agent-forge:identity -->` block into `AGENTS.md`; if you launch it here, don't commit that block.

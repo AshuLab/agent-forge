@@ -9,7 +9,7 @@ On each run the launcher:
 - detects installed provider CLIs on your PATH
 - asks which provider to use (or takes it from a flag)
 - starts the provider with the GitHub token and a per-agent git identity injected into the environment
-- writes the agent's `systemPrompt` into the provider's startup memory file (`CLAUDE.md` / `AGENTS.md`) so subagents inherit the identity
+- injects the agent's `systemPrompt` per process (`claude --append-system-prompt`, `codex -c developer_instructions`; antigravity falls back to an `AGENTS.md` block)
 
 Provider auth stays in the provider CLI — the launcher never handles provider API keys.
 
@@ -60,9 +60,9 @@ The shape, for reference — the `"$schema"` line points at the published schema
 }
 ```
 
-- The **installation id is not stored** — it is resolved on each run, in order: the owner of the repo you launch in, then `account`, then the App's sole installation. So the same agent works across every org the App is installed on, and it survives an uninstall/reinstall (which rotates the id).
-- Add `"account": "<org-or-user login>"` only when you run outside a matching repo and the App has more than one installation.
-- `installationId` is still accepted as an explicit override — set it to pin a specific id or skip the lookup (offline, or in a git credential helper).
+- The **installation id is not stored** — it is resolved on each run, in order: the owner of the repo you launch in, then the App's sole installation. So the same agent works across every org the App is installed on, and it survives an uninstall/reinstall (which rotates the id).
+- An App installed on more than one account only resolves when you launch from inside a repo it covers — that repo picks the installation.
+- `installationId` is accepted as an explicit override — set it to pin a specific id or skip the lookup (offline, or in a git credential helper).
 - One agent, many accounts: a **private** GitHub App only installs on the account that owns it. To run the agent on both a personal account and an org, make the App public or use one App per account — see [docs/github-app.md](docs/github-app.md).
 - `botId` is optional. When omitted it is resolved from the GitHub API using `botName` so the git author email links commits to the bot. Set it explicitly only to skip that lookup (e.g. offline).
 - Do not put provider-specific config here — providers are auto-detected from PATH.
@@ -102,11 +102,11 @@ Running `agent-forge` with no agents configured offers to run the wizard for you
 agent-forge add
 ```
 
-You provide the **GitHub App ID** and the **path to its private key**. The wizard derives the rest from the GitHub API — slug (`botName`), bot user id, and the account (asked only when the App is installed on more than one) — asks for a label and an optional system prompt, mints a test token to confirm it works, and writes the entry. It writes to the resolved config path — the global registry (`~/.config/agent-forge/agents.json`) unless `$AGENT_FORGE_CONFIG` or an existing `./agents.json` redirects it.
+You provide the **GitHub App ID** and the **path to its private key**. The wizard derives the rest from the GitHub API — slug (`botName`), bot user id — asks for a label and an optional system prompt, mints a test token to confirm it works, and writes the entry. It writes to the resolved config path — the global registry (`~/.config/agent-forge/agents.json`) unless `$AGENT_FORGE_CONFIG` or an existing `./agents.json` redirects it.
 
 ### Manual
 
-Copy one agent object inside the `agents` array and set unique values for `name`, `label`, `appId`, `botName`, `privateKeyPath` — plus `account` if the App has more than one installation. Make sure the private key file exists and is readable.
+Copy one agent object inside the `agents` array and set unique values for `name`, `label`, `appId`, `botName`, `privateKeyPath`. Make sure the private key file exists and is readable.
 
 ## Launch
 
@@ -132,8 +132,9 @@ Before launching, it prints a summary:
 │  repo      AshuLab/app        ← the repo you're in (drives account)
 │  scope     write: contents, issues, pull_requests  ·  +4 read
 │  expires   ~59m               ← installation tokens last ~1h
-│  memory    CLAUDE.md          ← where systemPrompt was written
 ```
+
+(The `antigravity` provider adds a `memory` row pointing at the `AGENTS.md` it wrote.)
 
 Other commands:
 
@@ -145,10 +146,11 @@ agent-forge --help
 
 ### Provider-specific prompt behavior
 
-- `claude`: passed via `--append-system-prompt` (lands in the real system prompt)
-- `codex` / `antigravity` (`agy`): no CLI flag — identity comes from `AGENTS.md` only (`agy --prompt` is headless `--print`; a codex positional arg is a fake first user turn)
+`systemPrompt` is injected per process — no repo file is touched:
 
-The launcher also writes `systemPrompt` into the provider's startup memory file in the working directory (`CLAUDE.md` for claude, `AGENTS.md` for codex and antigravity), inside a managed `agent-forge:identity` block. This keeps the identity in place for subagents the provider spawns, not just its main thread. The block is rewritten on each run and safe to keep in version control.
+- `claude`: `--append-system-prompt` (lands in the real system prompt)
+- `codex`: `-c developer_instructions=…` (appends a developer message; unlike `model_instructions_file` it does not replace codex's base prompt)
+- `antigravity` (`agy`): no such flag — the launcher writes `systemPrompt` into `AGENTS.md` in the working directory, inside a managed `agent-forge:identity` block. Do not commit it. Run one agent per worktree.
 
 ## Token refresh
 

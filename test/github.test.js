@@ -7,28 +7,16 @@ const installs = [
   { id: '2', account: 'AshuLab' },
 ];
 
-test('pickInstallation: matches account case-insensitively', () => {
-  assert.equal(pickInstallation(installs, { account: 'ashulab' }), '2');
-});
-
-test('pickInstallation: single installation needs no account', () => {
+test('pickInstallation: the sole installation is taken', () => {
   assert.equal(pickInstallation([installs[0]], { name: 'a' }), '1');
 });
 
-test('pickInstallation: ambiguous without account throws with the choices', () => {
+test('pickInstallation: several installations throw with the choices listed', () => {
   assert.throws(() => pickInstallation(installs, { name: 'a', appId: '9' }), /vemec, AshuLab/);
-});
-
-test('pickInstallation: unknown account throws', () => {
-  assert.throws(() => pickInstallation(installs, { account: 'nope', appId: '9' }), /not installed on "nope"/);
 });
 
 test('pickInstallation: no installations throws', () => {
   assert.throws(() => pickInstallation([], { appId: '9' }), /no installations/);
-});
-
-test('pickInstallation: a non-string account fails cleanly, not with a TypeError', () => {
-  assert.throws(() => pickInstallation(installs, { account: 12345, appId: '9' }), /not installed on "12345"/);
 });
 
 test('parseGithubRemote: ssh, https, with and without .git and trailing slash', () => {

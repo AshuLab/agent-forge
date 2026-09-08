@@ -25,13 +25,9 @@
             "type": "string",
             "description": "GitHub App ID (numeric, stored as a string)"
           },
-          "account": {
-            "type": "string",
-            "description": "Account/org login where the App is installed. Fallback for installation-id resolution when you run outside a matching repo. Needed only when the App has more than one installation. Resolution order: repo owner, then account, then the sole installation."
-          },
           "installationId": {
             "type": "string",
-            "description": "Optional override. Normally the installation id is resolved (repo owner, then account, then the sole installation). Set this to pin a specific id or skip the lookup (offline, or in a git credential helper)."
+            "description": "Optional override. Normally the installation id is resolved (repo owner, then the App's sole installation). Set this to pin a specific id or skip the lookup (offline, or in a git credential helper)."
           },
           "botName": {
             "type": "string",

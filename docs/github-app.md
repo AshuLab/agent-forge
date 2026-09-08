@@ -64,7 +64,7 @@ Click **Create GitHub App**. From the App's settings page:
    ```
 
    This path is `privateKeyPath`. Never commit it (`*.pem` is git-ignored here).
-3. **Installation** — go to the *Install App* tab → **Install** → pick the account/org → choose **All repositories** or a specific set. You don't need to record the installation id — `agent-forge` resolves it on each run from the repo you're in (or the `account` field, or the sole installation).
+3. **Installation** — go to the *Install App* tab → **Install** → pick the account/org → choose **All repositories** or a specific set. You don't need to record the installation id — `agent-forge` resolves it on each run from the repo you're in (or the App's sole installation).
 
 ## 5. Wire it into agent-forge
 
@@ -72,7 +72,7 @@ Click **Create GitHub App**. From the App's settings page:
 agent-forge add
 ```
 
-Give it the **App ID** and the **private key path**. The wizard calls the GitHub API to fill in the rest — slug (`botName`), bot user id (`botId`), and, only if the App is installed on more than one account, which `account` to default to — mints a test token, and writes the entry to your registry.
+Give it the **App ID** and the **private key path**. The wizard calls the GitHub API to fill in the rest — slug (`botName`), bot user id (`botId`) — mints a test token, and writes the entry to your registry.
 
 Manual equivalent in `agents.json`:
 
@@ -81,7 +81,6 @@ Manual equivalent in `agents.json`:
 | `appId` | from step 4.1 |
 | `privateKeyPath` | from step 4.2 |
 | `botName` | the App slug (lowercase name, dashes for spaces) |
-| `account` | optional — the org/user login to fall back to when the App has more than one installation |
 | `botId` | optional — resolved from `botName` via the API when omitted |
 
 ## 6. Verify
@@ -100,7 +99,7 @@ A JSON list of repos means the App, key, and installation all line up.
 | --- | --- |
 | `This App has no installations` | You created it but never hit *Install*. Do step 4.3. |
 | The org isn't offered on the *Install* screen | The App is private (owner account only). Make it public, or transfer it to the org — General → Danger Zone. |
-| `is installed on N accounts … add "account"` | You ran outside a repo the App covers. Add `account` to the agent, or launch from inside a matching repo. |
+| `is installed on N accounts …` | You ran outside a repo the App covers. Launch from inside a repo under one of those accounts. |
 | `Private key ... not found or unreadable` | Wrong `privateKeyPath`, or the file isn't readable. |
 | `error:1E08010C` / `PEM routines` | The `.pem` is corrupted or not the App key. Regenerate it. |
 | `Resource not accessible by integration` | Missing a permission from step 3. Add it, then re-approve the installation. |

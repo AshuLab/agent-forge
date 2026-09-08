@@ -80,23 +80,11 @@ export async function fetchAppMetadata(appId, privateKeyPath) {
   };
 }
 
-// Choose which installation to mint a token for. An explicit installationId wins;
-// otherwise match agent.account, or take the only installation when there is one.
+// Fallback when the repo you launch in doesn't pin an installation: take the
+// sole one, or fail if the App spans several (launch from a covered repo then).
 export function pickInstallation(installations, agent) {
   if (installations.length === 0) {
     throw new Error(`GitHub App ${agent.appId} has no installations. Install it on an account or org first.`);
-  }
-
-  if (agent.account) {
-    const want = String(agent.account).toLowerCase();
-    const match = installations.find((item) => item.account.toLowerCase() === want);
-    if (!match) {
-      throw new Error(
-        `GitHub App ${agent.appId} is not installed on "${agent.account}". ` +
-          `Installed on: ${installations.map((item) => item.account).join(', ')}.`
-      );
-    }
-    return match.id;
   }
 
   if (installations.length === 1) return installations[0].id;
@@ -104,7 +92,7 @@ export function pickInstallation(installations, agent) {
   throw new Error(
     `GitHub App ${agent.appId} is installed on ${installations.length} accounts ` +
       `(${installations.map((item) => item.account).join(', ')}). ` +
-      `Run inside a repo under one of them, or add "account" to agent "${agent.name}".`
+      `Launch from inside a repo under one of them.`
   );
 }
 
@@ -137,8 +125,8 @@ async function installationForRepo(slug, jwtToken) {
 }
 
 // Returns { id, account }. Resolution order: explicit installationId (account
-// unknown), then the current repo's owner, then agent.account, then the App's
-// sole installation (see pickInstallation).
+// unknown), then the current repo's owner, then the App's sole installation
+// (see pickInstallation).
 async function resolveInstallation(agent, jwtToken) {
   if (agent.installationId) return { id: String(agent.installationId), account: null };
 
