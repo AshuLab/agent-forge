@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- `antigravity` identity is no longer a managed `AGENTS.md` block. The launcher writes a global antigravity custom agent at `~/.gemini/config/agents/<name>/agent.md` and passes `--agent <name>`, so the repo is untouched and several agents can share a worktree — matching `claude` and `codex`. The file is keyed by the registry `name`, upserted on each run, never auto-deleted, and a collision with a file lacking the `agentForge` marker aborts the launch.
+- `agents.json` `name` must now match `^[a-z0-9][a-z0-9-]*$` (it is also the antigravity custom-agent id and a path segment).
+
+### Removed
+
+- `src/identity.js` and the `<!-- agent-forge:identity -->` block — no provider needs it now.
+
 ## [0.4.0] - 2026-09-07
 
 ### Changed

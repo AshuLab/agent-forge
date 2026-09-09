@@ -9,7 +9,7 @@ On each run the launcher:
 - detects installed provider CLIs on your PATH
 - asks which provider to use (or takes it from a flag)
 - starts the provider with the GitHub token and a per-agent git identity injected into the environment
-- injects the agent's `systemPrompt` per process (`claude --append-system-prompt`, `codex -c developer_instructions`; antigravity falls back to an `AGENTS.md` block)
+- injects the agent's `systemPrompt` per process (`claude --append-system-prompt`, `codex -c developer_instructions`; antigravity via a global custom agent selected with `--agent`) — no repo file is touched
 
 Provider auth stays in the provider CLI — the launcher never handles provider API keys.
 
@@ -134,7 +134,7 @@ Before launching, it prints a summary:
 │  expires   ~59m               ← installation tokens last ~1h
 ```
 
-(The `antigravity` provider adds a `memory` row pointing at the `AGENTS.md` it wrote.)
+(The `antigravity` provider adds an `agent` row showing the `--agent` id and the custom-agent file it wrote.)
 
 Other commands:
 
@@ -150,7 +150,7 @@ agent-forge --help
 
 - `claude`: `--append-system-prompt` (lands in the real system prompt)
 - `codex`: `-c developer_instructions=…` (appends a developer message; unlike `model_instructions_file` it does not replace codex's base prompt)
-- `antigravity` (`agy`): no such flag — the launcher writes `systemPrompt` into `AGENTS.md` in the working directory, inside a managed `agent-forge:identity` block. Do not commit it. Run one agent per worktree.
+- `antigravity` (`agy`): no prompt flag — the launcher writes `systemPrompt` as a global antigravity custom agent at `~/.gemini/config/agents/<name>/agent.md` (frontmatter `name`, `mainAgent: true`, `agentForge: true`; prompt under an `# Identity` heading) and passes `--agent <name>`. The file is keyed by the agent's registry `name`, upserted on each run, and never deleted. If a file with that name exists without our `agentForge` marker, the launch fails rather than overwrite it — rename the agent or remove that file.
 
 ## Token refresh
 

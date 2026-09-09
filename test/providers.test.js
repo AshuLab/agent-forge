@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getProviderPromptArgs } from '../src/providers.js';
 
-test('claude and codex get a per-process flag; antigravity uses its memory file', () => {
+test('claude and codex get a per-process flag; antigravity gets none here (identity via --agent)', () => {
   const agent = { systemPrompt: 'p' };
   assert.deepEqual(getProviderPromptArgs('claude', agent), ['--append-system-prompt', 'p']);
   assert.deepEqual(getProviderPromptArgs('codex', agent), ['-c', 'developer_instructions="p"']);

@@ -15,7 +15,8 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Unique agent id, used with --agent"
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "description": "Unique agent id, used with --agent. Lowercase letters, digits, hyphens (also the antigravity custom-agent id)."
           },
           "label": {
             "type": "string",
@@ -43,7 +44,7 @@
           },
           "systemPrompt": {
             "type": "string",
-            "description": "Identity / system prompt injected into the provider and its memory file"
+            "description": "Identity / system prompt. Injected per process: claude --append-system-prompt, codex developer_instructions, antigravity a global custom agent selected with --agent"
           },
           "instructions": {
             "type": "string",

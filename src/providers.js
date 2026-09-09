@@ -46,7 +46,8 @@ export function getProviderPromptArgs(providerName, agent) {
   //   claude — --append-system-prompt lands in the real system prompt
   //   codex  — -c developer_instructions appends a developer message (a real
   //            append, unlike model_instructions_file which replaces the base)
-  // antigravity has no such flag: it reads AGENTS.md, written by syncIdentityFile.
+  // antigravity has no prompt flag: the launcher writes a global custom agent
+  // (syncAntigravityAgent) and passes `--agent <name>` separately.
   if (providerName === 'claude') return ['--append-system-prompt', prompt];
   if (providerName === 'codex') return ['-c', `developer_instructions=${JSON.stringify(prompt)}`];
   return [];

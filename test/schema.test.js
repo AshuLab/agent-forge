@@ -8,6 +8,8 @@ test('agents.schema.json stays in sync with agents.example.json', () => {
   const itemSchema = read('agents.schema.json').properties.agents.items;
   const allowed = new Set(Object.keys(itemSchema.properties));
 
+  const namePattern = new RegExp(itemSchema.properties.name.pattern);
+
   for (const agent of read('agents.example.json').agents) {
     for (const key of Object.keys(agent)) {
       assert.ok(allowed.has(key), `schema is missing property "${key}"`);
@@ -15,5 +17,6 @@ test('agents.schema.json stays in sync with agents.example.json', () => {
     for (const req of itemSchema.required) {
       assert.ok(req in agent, `agents.example.json missing required "${req}"`);
     }
+    assert.match(agent.name, namePattern, `agents.example.json name "${agent.name}" must match schema pattern`);
   }
 });
