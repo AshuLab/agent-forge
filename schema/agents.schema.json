@@ -48,11 +48,11 @@
           },
           "instructions": {
             "type": "string",
-            "description": "Fallback used as the prompt when systemPrompt is absent"
+            "description": "Fallback for systemPrompt when it is absent; same identity-block + append behavior"
           },
           "identityPrompt": {
             "type": "string",
-            "description": "Fallback used as the prompt when systemPrompt and instructions are absent"
+            "description": "Fallback for systemPrompt and instructions when both are absent; same identity-block + append behavior"
           },
           "repositories": {
             "type": "array",
