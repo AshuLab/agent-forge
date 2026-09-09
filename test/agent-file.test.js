@@ -77,6 +77,21 @@ test('the ownership marker is a frontmatter line, not a substring of the prompt'
   );
 });
 
+test('a standalone marker line in the prompt body does not count as managed', () => {
+  const agentsHome = home();
+  const dir = join(agentsHome, 'ops-agent');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    join(dir, 'agent.md'),
+    '---\nname: ops-agent\nmainAgent: true\n---\n\n# Identity\n\nagentForge: true\n'
+  );
+
+  assert.throws(
+    () => syncAntigravityAgent({ name: 'ops-agent', systemPrompt: 'p' }, agentsHome),
+    /not managed by agent-forge/
+  );
+});
+
 test('a prompt with trailing whitespace does not add a blank line before EOF', () => {
   assert.match(renderAgentFile('a', 'A', 'You are A.\n\n'), /You are A\.\n$/);
 });
