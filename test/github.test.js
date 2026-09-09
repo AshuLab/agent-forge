@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTokenScope, parseGithubRemote, pickInstallation } from '../src/github.js';
+import { buildTokenScope, githubApiError, parseGithubRemote, pickInstallation } from '../src/github.js';
 
 const installs = [
   { id: '1', account: 'vemec' },
@@ -46,4 +46,20 @@ test('buildTokenScope: passes through repositories and permissions', () => {
 
 test('buildTokenScope: ignores malformed values', () => {
   assert.deepEqual(buildTokenScope({ repositories: 'skills', permissions: 'write' }), {});
+});
+
+test('githubApiError: 401 on a JWT call gets the appId/key hint', () => {
+  const msg = githubApiError('/app/installations', 401, 'A JSON web token could not be decoded', true);
+  assert.match(msg, /appId matches privateKeyPath/);
+});
+
+test('githubApiError: other statuses and non-JWT 401s are passed through plain', () => {
+  assert.equal(
+    githubApiError('/app', 404, 'Not Found', true),
+    'GitHub API /app: 404 Not Found'
+  );
+  assert.equal(
+    githubApiError('/users/x', 401, 'Bad credentials', false),
+    'GitHub API /users/x: 401 Bad credentials'
+  );
 });

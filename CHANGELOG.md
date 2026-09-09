@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- A `401` from a GitHub API call signed with the App JWT now explains the likely cause — `appId` not matching `privateKeyPath`, or a skewed system clock — instead of surfacing GitHub's bare `A JSON web token could not be decoded`.
+
+### Documentation
+
+- Troubleshooting table gains a row for the rejected-App-JWT `401`.
+
 ## [0.5.0] - 2026-09-09
 
 ### Changed

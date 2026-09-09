@@ -102,6 +102,7 @@ A JSON list of repos means the App, key, and installation all line up.
 | `is installed on N accounts …` | You ran outside a repo the App covers. Launch from inside a repo under one of those accounts. |
 | `Private key ... not found or unreadable` | Wrong `privateKeyPath`, or the file isn't readable. |
 | `error:1E08010C` / `PEM routines` | The `.pem` is corrupted or not the App key. Regenerate it. |
+| `401 … the App JWT was rejected` | `appId` doesn't match `privateKeyPath` (the key belongs to a different App), or the system clock is off. |
 | `Resource not accessible by integration` | Missing a permission from step 3. Add it, then re-approve the installation. |
 | `404` resolving the bot id | The App slug in `botName` is wrong, or the App is brand new — retry, or set `botId` manually from `https://api.github.com/users/<slug>%5Bbot%5D`. |
 
