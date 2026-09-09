@@ -9,7 +9,7 @@ On each run the launcher:
 - detects installed provider CLIs on your PATH
 - asks which provider to use (or takes it from a flag)
 - starts the provider with the GitHub token and a per-agent git identity injected into the environment
-- injects the agent's `systemPrompt` per process (`claude --append-system-prompt`, `codex -c developer_instructions`; antigravity via a global custom agent selected with `--agent`) — no repo file is touched
+- injects an identity prompt per process — a fixed block naming the git author identity and the `GH_TOKEN` / `GITHUB_TOKEN` in the environment, with the agent's optional `systemPrompt` appended (`claude --append-system-prompt`, `codex -c developer_instructions`; antigravity via a global custom agent selected with `--agent`) — no repo file is touched
 
 Provider auth stays in the provider CLI — the launcher never handles provider API keys.
 
@@ -146,11 +146,11 @@ agent-forge --help
 
 ### Provider-specific prompt behavior
 
-`systemPrompt` is injected per process — no repo file is touched:
+The identity prompt (identity block + the agent's optional `systemPrompt`) is injected per process — no repo file is touched:
 
 - `claude`: `--append-system-prompt` (lands in the real system prompt)
 - `codex`: `-c developer_instructions=…` (appends a developer message; unlike `model_instructions_file` it does not replace codex's base prompt)
-- `antigravity` (`agy`): no prompt flag — the launcher writes `systemPrompt` as a global antigravity custom agent at `~/.gemini/config/agents/<name>/agent.md` (frontmatter `name`, `mainAgent: true`, `agentForge: true`; prompt under an `# Identity` heading) and passes `--agent <name>`. The file is keyed by the agent's registry `name`, upserted on each run, and never deleted. If a file with that name exists without our `agentForge` marker, the launch fails rather than overwrite it — rename the agent or remove that file.
+- `antigravity` (`agy`): no prompt flag — the launcher writes the identity prompt as a global antigravity custom agent at `~/.gemini/config/agents/<name>/agent.md` (frontmatter `name`, `mainAgent: true`, `agentForge: true`; prompt under an `# Identity` heading) and passes `--agent <name>`. The file is keyed by the agent's registry `name`, upserted on each run, and never deleted. If a file with that name exists without our `agentForge` marker, the launch fails rather than overwrite it — rename the agent or remove that file.
 
 ## Token refresh
 
