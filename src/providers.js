@@ -46,8 +46,19 @@ export function getProviderPromptArgs(providerName, agent) {
   //   claude — --append-system-prompt lands in the real system prompt
   //   codex  — -c developer_instructions appends a developer message (a real
   //            append, unlike model_instructions_file which replaces the base)
-  // antigravity has no such flag: it reads AGENTS.md, written by syncIdentityFile.
+  // antigravity has no prompt flag: the launcher writes a global custom agent
+  // (syncAntigravityAgent) and passes `--agent <name>` separately.
   if (providerName === 'claude') return ['--append-system-prompt', prompt];
   if (providerName === 'codex') return ['-c', `developer_instructions=${JSON.stringify(prompt)}`];
   return [];
+}
+
+// Full provider argv: the per-process prompt flag, plus `--agent <name>` when the
+// launcher wrote an antigravity custom agent. Pure so the identity-critical
+// assembly has a test.
+export function buildProviderArgs(providerName, agent, antigravityAgent) {
+  return [
+    ...getProviderPromptArgs(providerName, agent),
+    ...(antigravityAgent ? ['--agent', antigravityAgent.name] : []),
+  ];
 }

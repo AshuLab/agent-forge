@@ -11,7 +11,7 @@ Per run it:
 1. reads agent metadata from `agents.json`,
 2. mints a GitHub App installation token,
 3. injects `GH_TOKEN` / `GITHUB_TOKEN` and `GIT_AUTHOR_*` / `GIT_COMMITTER_*` into the child environment,
-4. injects the agent's `systemPrompt` per process — `claude --append-system-prompt`, `codex -c developer_instructions` — so no repo file is touched; antigravity has no such flag and falls back to a managed `<!-- agent-forge:identity -->` block in `AGENTS.md`,
+4. injects the agent's `systemPrompt` per process — `claude --append-system-prompt`, `codex -c developer_instructions`; antigravity has no prompt flag, so the launcher writes a global custom agent at `~/.gemini/config/agents/<name>/agent.md` and passes `--agent <name>` — no repo file is touched,
 5. spawns the provider CLI with stdio inherited.
 
 Provider auth stays in the provider CLI. The launcher never handles provider API keys.
@@ -37,7 +37,7 @@ Provider auth stays in the provider CLI. The launcher never handles provider API
 - `src/config.js` — locate/read/validate `agents.json`, append agents.
 - `src/github.js` — App JWT, installation tokens, installation-id + bot-id resolution, App metadata.
 - `src/providers.js` — provider table, PATH detection, per-provider prompt flags.
-- `src/identity.js` — upsert the managed identity block in the memory file.
+- `src/agent-file.js` — upsert the antigravity global custom agent (`~/.gemini/config/agents/<name>/agent.md`), guarded by the `agentForge` ownership marker.
 - `src/format.js` — presentation helpers for the launch summary (scope, expiry).
 - `test/*.test.js` — one test file per module, run by Node's built-in test runner.
 - `schema/agents.schema.json` — JSON Schema for `agents.json`, kept in sync with `schema/agents.example.json` (`test/schema.test.js` enforces it).
@@ -55,4 +55,4 @@ Provider auth stays in the provider CLI. The launcher never handles provider API
 
 - `dist/` is gitignored — `pnpm build` regenerates `dist/launcher.cjs`; `prepublishOnly` runs build + test before publish.
 - No offline mode: `pnpm dev` and `agent-forge token` always mint a real installation token, so they need a valid `appId` and a readable `privateKeyPath` or they fail at "Minting installation token".
-- claude and codex receive their identity via a CLI flag — nothing is written. Only `antigravity` writes an `<!-- agent-forge:identity -->` block into `AGENTS.md`; if you launch it here, don't commit that block.
+- claude and codex receive their identity via a CLI flag — nothing is written. `antigravity` writes/updates a global custom agent under `~/.gemini/config/agents/<name>/` (outside the repo, persisted, never auto-deleted); a name collision with a file lacking the `agentForge` marker aborts the launch instead of overwriting it.

@@ -1,11 +1,10 @@
 import { spawn } from 'node:child_process';
-import { relative } from 'node:path';
 import { styleText } from 'node:util';
 import { cancel, log, note, outro, spinner } from '@clack/prompts';
 import { readAgents, listAgents } from './config.js';
 import { currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
-import { detectAvailableProviders, getProviderInfo, getProviderPromptArgs } from './providers.js';
-import { syncIdentityFile } from './identity.js';
+import { buildProviderArgs, detectAvailableProviders, getProviderInfo } from './providers.js';
+import { syncAntigravityAgent } from './agent-file.js';
 import { formatExpiry, formatScope } from './format.js';
 import { addAgentWizard, interactiveSelection, parseArgs, printHelp, printVersion, showIntro } from './cli.js';
 
@@ -41,7 +40,7 @@ async function launchAgent(agentName, providerName) {
   const gitIdentity = buildGitIdentity(agent, botId);
   s.stop(`Token ready for ${styleText('green', gitIdentity.GIT_AUTHOR_NAME)}`);
 
-  const identityFile = syncIdentityFile(providerName, agent);
+  const antigravityAgent = providerName === 'antigravity' ? syncAntigravityAgent(agent) : null;
 
   const runtimeEnv = {
     ...process.env,
@@ -65,12 +64,12 @@ async function launchAgent(agentName, providerName) {
     row('scope', styleText('dim', repositorySelection === 'selected' ? `${scopeText}  ·  selected repos` : scopeText))
   );
   if (expiresAt) summary.push(row('expires', styleText('dim', formatExpiry(expiresAt))));
-  if (identityFile) {
-    summary.push(row('memory', styleText('dim', relative(process.cwd(), identityFile) || identityFile)));
+  if (antigravityAgent) {
+    summary.push(row('agent', styleText('dim', `--agent ${antigravityAgent.name}  ·  ${antigravityAgent.file}`)));
   }
   note(summary.join('\n'), styleText('bold', agent.label || agent.name));
 
-  const providerArgs = getProviderPromptArgs(providerName, agent);
+  const providerArgs = buildProviderArgs(providerName, agent, antigravityAgent);
 
   const child = spawn(providerInfo.command, providerArgs, {
     stdio: 'inherit',

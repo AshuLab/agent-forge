@@ -4,6 +4,10 @@ import { dirname, join, resolve } from 'node:path';
 import { note } from '@clack/prompts';
 
 const REQUIRED_FIELDS = ['name', 'appId', 'privateKeyPath'];
+// `name` is the --agent id and a path segment; enforce the schema pattern at
+// runtime so a malformed name fails here for every provider, not only at an
+// antigravity launch.
+const VALID_NAME = /^[a-z0-9][a-z0-9-]*$/;
 const SCHEMA_URL = 'https://raw.githubusercontent.com/AshuLab/agent-forge/main/schema/agents.schema.json';
 
 const CONFIG_HOME = process.env.XDG_CONFIG_HOME || join(homedir(), '.config');
@@ -58,6 +62,11 @@ function validateAgents(agents) {
       if (!agent[field]) {
         throw new Error(`agents.json: agent ${ref} is missing "${field}"`);
       }
+    }
+    if (!VALID_NAME.test(agent.name)) {
+      throw new Error(
+        `agents.json: agent ${ref} has an invalid name "${agent.name}" (lowercase letters, digits, hyphens)`
+      );
     }
     if (seen.has(agent.name)) {
       throw new Error(`agents.json: duplicate agent name "${agent.name}"`);

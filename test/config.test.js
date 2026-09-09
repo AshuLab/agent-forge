@@ -43,6 +43,13 @@ test('readAgentsOrEmpty: broken JSON still throws', () => {
   withConfig('{ not json', () => assert.throws(() => readAgentsOrEmpty(), /not valid JSON/));
 });
 
+test('readAgentsOrEmpty: rejects a name that is not a safe slug', () => {
+  const ok = { appId: '1', privateKeyPath: '/k' };
+  withConfig(JSON.stringify({ agents: [{ ...ok, name: 'Ops_Agent' }] }), () =>
+    assert.throws(() => readAgentsOrEmpty(), /invalid name/)
+  );
+});
+
 test('readAgents: distinct messages for missing file vs empty registry', () => {
   withConfig(undefined, () => assert.throws(() => readAgents(), /No agents\.json found/));
   withConfig('{"agents":[]}', () => assert.throws(() => readAgents(), /no agents defined/));
