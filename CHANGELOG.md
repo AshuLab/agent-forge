@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Removed
 
-- `src/identity.js` and the `<!-- agent-forge:identity -->` block — no provider needs it now.
+- `src/identity.js` and the `<!-- agent-forge:identity -->` block — no provider needs it now. If you launched `antigravity` before this change, an inert `<!-- agent-forge:identity -->` block may still sit in your repo's `AGENTS.md`; nothing reads or removes it now, so delete it by hand.
 
 ## [0.4.0] - 2026-09-07
 

@@ -3,7 +3,7 @@ import { styleText } from 'node:util';
 import { cancel, log, note, outro, spinner } from '@clack/prompts';
 import { readAgents, listAgents } from './config.js';
 import { currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
-import { detectAvailableProviders, getProviderInfo, getProviderPromptArgs } from './providers.js';
+import { buildProviderArgs, detectAvailableProviders, getProviderInfo } from './providers.js';
 import { syncAntigravityAgent } from './agent-file.js';
 import { formatExpiry, formatScope } from './format.js';
 import { addAgentWizard, interactiveSelection, parseArgs, printHelp, printVersion, showIntro } from './cli.js';
@@ -69,10 +69,7 @@ async function launchAgent(agentName, providerName) {
   }
   note(summary.join('\n'), styleText('bold', agent.label || agent.name));
 
-  const providerArgs = [
-    ...getProviderPromptArgs(providerName, agent),
-    ...(antigravityAgent ? ['--agent', antigravityAgent.name] : []),
-  ];
+  const providerArgs = buildProviderArgs(providerName, agent, antigravityAgent);
 
   const child = spawn(providerInfo.command, providerArgs, {
     stdio: 'inherit',

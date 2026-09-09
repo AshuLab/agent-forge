@@ -89,7 +89,12 @@ export async function addAgentWizard({ embedded = false } = {}) {
       : `${meta.installations.map((i) => i.account).join(', ')} — resolved from the repo you launch in`;
   note(where, 'Installation');
 
-  const name = (keep(await text({ message: 'Agent name', placeholder: meta.slug, defaultValue: meta.slug })) || meta.slug).trim();
+  const name = (keep(await text({
+    message: 'Agent name',
+    placeholder: meta.slug,
+    defaultValue: meta.slug,
+    validate: (v) => (/^[a-z0-9][a-z0-9-]*$/.test(v.trim()) ? undefined : 'Lowercase letters, digits, hyphens'),
+  })) || meta.slug).trim();
   const label = (keep(await text({ message: 'Label', placeholder: meta.name, defaultValue: meta.name })) || meta.name).trim();
   const systemPrompt = keep(await text({ message: 'System prompt (optional)', placeholder: 'You are ...' })).trim();
 

@@ -8,6 +8,7 @@ test('agents.schema.json stays in sync with agents.example.json', () => {
   const itemSchema = read('agents.schema.json').properties.agents.items;
   const allowed = new Set(Object.keys(itemSchema.properties));
 
+  assert.ok(itemSchema.properties.name.pattern, 'schema must define a name pattern');
   const namePattern = new RegExp(itemSchema.properties.name.pattern);
 
   for (const agent of read('agents.example.json').agents) {

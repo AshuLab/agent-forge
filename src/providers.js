@@ -52,3 +52,13 @@ export function getProviderPromptArgs(providerName, agent) {
   if (providerName === 'codex') return ['-c', `developer_instructions=${JSON.stringify(prompt)}`];
   return [];
 }
+
+// Full provider argv: the per-process prompt flag, plus `--agent <name>` when the
+// launcher wrote an antigravity custom agent. Pure so the identity-critical
+// assembly has a test.
+export function buildProviderArgs(providerName, agent, antigravityAgent) {
+  return [
+    ...getProviderPromptArgs(providerName, agent),
+    ...(antigravityAgent ? ['--agent', antigravityAgent.name] : []),
+  ];
+}

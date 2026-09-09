@@ -12,6 +12,10 @@ import { join } from 'node:path';
 // key is our ownership marker: on a rerun we refuse to overwrite an agent.md we
 // did not write.
 const MARKER = 'agentForge: true';
+// Ownership is a frontmatter line, not a substring: a hand-written agent.md that
+// merely mentions the marker in its prompt body must not read as "managed", and
+// only the exact `agentForge: true` spelling counts as ours.
+const MARKER_LINE = /^agentForge:\s*true\s*$/m;
 const AGENTS_HOME = join(homedir(), '.gemini', 'config', 'agents');
 
 // antigravity agent ids: lowercase letters, digits, hyphens. Also keeps `name`
@@ -29,7 +33,7 @@ export function renderAgentFile(name, description, prompt) {
     '',
     '# Identity',
     '',
-    prompt,
+    prompt.trimEnd(),
     '',
   ].join('\n');
 }
@@ -54,7 +58,7 @@ export function syncAntigravityAgent(agent, agentsHome = AGENTS_HOME) {
 
   if (existsSync(file)) {
     const current = readFileSync(file, 'utf8');
-    if (!current.includes(MARKER)) {
+    if (!MARKER_LINE.test(current)) {
       throw new Error(
         `${file} already exists and is not managed by agent-forge.\n` +
           `Rename the agent in your registry or remove that file.`
