@@ -44,7 +44,7 @@
           },
           "systemPrompt": {
             "type": "string",
-            "description": "Identity / system prompt. Injected per process: claude --append-system-prompt, codex developer_instructions, antigravity a global custom agent selected with --agent"
+            "description": "Optional agent-specific system prompt, appended to the identity block agent-forge always injects. Per process: claude --append-system-prompt, codex developer_instructions, antigravity a global custom agent selected with --agent"
           },
           "instructions": {
             "type": "string",

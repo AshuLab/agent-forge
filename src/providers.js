@@ -36,12 +36,7 @@ export function getProviderInfo(providerName, agent) {
   return { provider, command: resolvedCommand };
 }
 
-export function getProviderPromptArgs(providerName, agent) {
-  const prompt = agent.systemPrompt || agent.instructions || agent.identityPrompt;
-  if (!prompt) {
-    return [];
-  }
-
+export function getProviderPromptArgs(providerName, prompt) {
   // Per-process identity, no repo file touched:
   //   claude — --append-system-prompt lands in the real system prompt
   //   codex  — -c developer_instructions appends a developer message (a real
@@ -56,9 +51,9 @@ export function getProviderPromptArgs(providerName, agent) {
 // Full provider argv: the per-process prompt flag, plus `--agent <name>` when the
 // launcher wrote an antigravity custom agent. Pure so the identity-critical
 // assembly has a test.
-export function buildProviderArgs(providerName, agent, antigravityAgent) {
+export function buildProviderArgs(providerName, prompt, antigravityAgent) {
   return [
-    ...getProviderPromptArgs(providerName, agent),
+    ...getProviderPromptArgs(providerName, prompt),
     ...(antigravityAgent ? ['--agent', antigravityAgent.name] : []),
   ];
 }

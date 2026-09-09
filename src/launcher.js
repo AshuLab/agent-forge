@@ -5,6 +5,7 @@ import { readAgents, listAgents } from './config.js';
 import { currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
 import { buildProviderArgs, detectAvailableProviders, getProviderInfo } from './providers.js';
 import { syncAntigravityAgent } from './agent-file.js';
+import { buildIdentityPrompt } from './identity-prompt.js';
 import { formatExpiry, formatScope } from './format.js';
 import { addAgentWizard, interactiveSelection, parseArgs, printHelp, printVersion, showIntro } from './cli.js';
 
@@ -40,7 +41,13 @@ async function launchAgent(agentName, providerName) {
   const gitIdentity = buildGitIdentity(agent, botId);
   s.stop(`Token ready for ${styleText('green', gitIdentity.GIT_AUTHOR_NAME)}`);
 
-  const antigravityAgent = providerName === 'antigravity' ? syncAntigravityAgent(agent) : null;
+  const identityPrompt = buildIdentityPrompt(
+    { name: gitIdentity.GIT_AUTHOR_NAME, email: gitIdentity.GIT_AUTHOR_EMAIL },
+    agent.systemPrompt || agent.instructions || agent.identityPrompt
+  );
+
+  const antigravityAgent =
+    providerName === 'antigravity' ? syncAntigravityAgent(agent, identityPrompt) : null;
 
   const runtimeEnv = {
     ...process.env,
@@ -69,7 +76,7 @@ async function launchAgent(agentName, providerName) {
   }
   note(summary.join('\n'), styleText('bold', agent.label || agent.name));
 
-  const providerArgs = buildProviderArgs(providerName, agent, antigravityAgent);
+  const providerArgs = buildProviderArgs(providerName, identityPrompt, antigravityAgent);
 
   const child = spawn(providerInfo.command, providerArgs, {
     stdio: 'inherit',

@@ -96,6 +96,16 @@ export async function addAgentWizard({ embedded = false } = {}) {
     validate: (v) => (/^[a-z0-9][a-z0-9-]*$/.test(v.trim()) ? undefined : 'Lowercase letters, digits, hyphens'),
   })) || meta.slug).trim();
   const label = (keep(await text({ message: 'Label', placeholder: meta.name, defaultValue: meta.name })) || meta.name).trim();
+  note(
+    [
+      'agent-forge already tells every launched agent:',
+      '  · its bot git identity (GIT_AUTHOR_*/GIT_COMMITTER_*)',
+      '  · that a scoped GH_TOKEN / GITHUB_TOKEN is in the environment',
+      '',
+      'Add only what is specific to this agent — role, style, guardrails.',
+    ].join('\n'),
+    'Identity is handled for you'
+  );
   const systemPrompt = keep(await text({ message: 'System prompt (optional)', placeholder: 'You are ...' })).trim();
 
   const agent = {
