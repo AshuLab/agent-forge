@@ -44,12 +44,9 @@ export function renderAgentFile(name, description, prompt) {
 }
 
 // Upsert ~/.gemini/config/agents/<name>/agent.md and return { file, name } for
-// `agy --agent <name>`, or null when the agent has no prompt. Throws on an
-// invalid name or a name collision with a file we do not manage.
-export function syncAntigravityAgent(agent, agentsHome = AGENTS_HOME) {
-  const prompt = agent.systemPrompt || agent.instructions || agent.identityPrompt;
-  if (!prompt) return null;
-
+// `agy --agent <name>`. Throws on an invalid name or a name collision with a
+// file we do not manage.
+export function syncAntigravityAgent(agent, prompt, agentsHome = AGENTS_HOME) {
   const name = agent.name;
   if (!VALID_NAME.test(name)) {
     throw new Error(

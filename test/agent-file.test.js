@@ -22,30 +22,26 @@ test('description is a YAML-safe scalar even with a colon', () => {
 
 test('creates the agent dir and returns { file, name }', () => {
   const agentsHome = home();
-  const result = syncAntigravityAgent({ name: 'ops-agent', label: 'Ops', systemPrompt: 'p' }, agentsHome);
+  const result = syncAntigravityAgent({ name: 'ops-agent', label: 'Ops' }, 'p', agentsHome);
   assert.equal(result.name, 'ops-agent');
   assert.equal(result.file, join(agentsHome, 'ops-agent', 'agent.md'));
   assert.ok(readFileSync(result.file, 'utf8').includes('# Identity'));
 });
 
-test('no prompt means no agent file', () => {
-  assert.equal(syncAntigravityAgent({ name: 'x' }, home()), null);
-});
-
 test('rejects a name that is not a safe slug', () => {
-  assert.throws(() => syncAntigravityAgent({ name: '../evil', systemPrompt: 'p' }, home()), /not a valid antigravity agent id/);
-  assert.throws(() => syncAntigravityAgent({ name: 'Ops_Agent', systemPrompt: 'p' }, home()), /not a valid antigravity agent id/);
+  assert.throws(() => syncAntigravityAgent({ name: '../evil' }, 'p', home()), /not a valid antigravity agent id/);
+  assert.throws(() => syncAntigravityAgent({ name: 'Ops_Agent' }, 'p', home()), /not a valid antigravity agent id/);
 });
 
 test('updates our own file when the prompt changes, leaves it alone otherwise', () => {
   const agentsHome = home();
-  const agent = { name: 'ops-agent', label: 'Ops', systemPrompt: 'first' };
-  const { file } = syncAntigravityAgent(agent, agentsHome);
+  const agent = { name: 'ops-agent', label: 'Ops' };
+  const { file } = syncAntigravityAgent(agent, 'first', agentsHome);
   const first = readFileSync(file, 'utf8');
 
-  assert.equal(readFileSync(syncAntigravityAgent(agent, agentsHome).file, 'utf8'), first, 'no-op on identical input');
+  assert.equal(readFileSync(syncAntigravityAgent(agent, 'first', agentsHome).file, 'utf8'), first, 'no-op on identical input');
 
-  syncAntigravityAgent({ ...agent, systemPrompt: 'second' }, agentsHome);
+  syncAntigravityAgent(agent, 'second', agentsHome);
   const next = readFileSync(file, 'utf8');
   assert.ok(next.includes('second') && !next.includes('first'));
 });
@@ -57,7 +53,7 @@ test('refuses to overwrite an agent.md it does not manage', () => {
   writeFileSync(join(dir, 'agent.md'), '---\nname: ops-agent\nmainAgent: true\n---\n\n# Identity\n\nhand written\n');
 
   assert.throws(
-    () => syncAntigravityAgent({ name: 'ops-agent', systemPrompt: 'p' }, agentsHome),
+    () => syncAntigravityAgent({ name: 'ops-agent' }, 'p', agentsHome),
     /not managed by agent-forge/
   );
 });
@@ -72,7 +68,7 @@ test('the ownership marker is a frontmatter line, not a substring of the prompt'
   );
 
   assert.throws(
-    () => syncAntigravityAgent({ name: 'ops-agent', systemPrompt: 'p' }, agentsHome),
+    () => syncAntigravityAgent({ name: 'ops-agent' }, 'p', agentsHome),
     /not managed by agent-forge/
   );
 });
@@ -87,7 +83,7 @@ test('a standalone marker line in the prompt body does not count as managed', ()
   );
 
   assert.throws(
-    () => syncAntigravityAgent({ name: 'ops-agent', systemPrompt: 'p' }, agentsHome),
+    () => syncAntigravityAgent({ name: 'ops-agent' }, 'p', agentsHome),
     /not managed by agent-forge/
   );
 });

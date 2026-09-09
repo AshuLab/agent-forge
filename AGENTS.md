@@ -11,7 +11,7 @@ Per run it:
 1. reads agent metadata from `agents.json`,
 2. mints a GitHub App installation token,
 3. injects `GH_TOKEN` / `GITHUB_TOKEN` and `GIT_AUTHOR_*` / `GIT_COMMITTER_*` into the child environment,
-4. injects the agent's `systemPrompt` per process — `claude --append-system-prompt`, `codex -c developer_instructions`; antigravity has no prompt flag, so the launcher writes a global custom agent at `~/.gemini/config/agents/<name>/agent.md` and passes `--agent <name>` — no repo file is touched,
+4. injects an identity prompt per process — a fixed block telling the model which GitHub App identity it acts under (git author identity + `GH_TOKEN`/`GITHUB_TOKEN` in env), with the agent's optional `systemPrompt` appended — via `claude --append-system-prompt`, `codex -c developer_instructions`; antigravity has no prompt flag, so the launcher writes a global custom agent at `~/.gemini/config/agents/<name>/agent.md` and passes `--agent <name>` — no repo file is touched,
 5. spawns the provider CLI with stdio inherited.
 
 Provider auth stays in the provider CLI. The launcher never handles provider API keys.
