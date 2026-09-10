@@ -42,9 +42,19 @@ async function githubApi(path, { jwtToken, body } = {}) {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(`GitHub API ${path}: ${response.status} ${data?.message || 'Unknown error'}`);
+    throw new Error(githubApiError(path, response.status, data?.message, Boolean(jwtToken)));
   }
   return data;
+}
+
+// A 401 on a JWT-signed call is almost always appId/key mismatch or clock skew,
+// and GitHub's own message ("could not be decoded") doesn't say so.
+export function githubApiError(path, status, message, signedWithJwt) {
+  let text = `GitHub API ${path}: ${status} ${message || 'Unknown error'}`;
+  if (status === 401 && signedWithJwt) {
+    text += ' — the App JWT was rejected. Check that appId matches privateKeyPath (this key must belong to that App), and that the system clock is accurate.';
+  }
+  return text;
 }
 
 export async function resolveBotId(agent) {
