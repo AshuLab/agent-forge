@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- The antigravity custom agent no longer carries a `description:` field. A non-empty description made `agy` classify the agent as a restricted definition and strip its execution tools (`run_command`, `write_to_file`, `replace_file_content`, subagents), leaving a read-only session that could not use the `GH_TOKEN` it was handed. Launched antigravity agents now get the full toolset.
+
 ## [0.5.0] - 2026-09-09
 
 ### Changed

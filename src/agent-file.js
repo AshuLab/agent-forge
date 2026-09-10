@@ -11,6 +11,12 @@ import { join } from 'node:path';
 // required or `agy` silently falls back to its default agent. The `agentForge`
 // key is our ownership marker: on a rerun we refuse to overwrite an agent.md we
 // did not write.
+//
+// We deliberately omit `description:`. A non-empty description makes `agy`
+// classify the agent as a restricted definition and strip its "fundamental
+// components" — run_command, write_to_file, replace_file_content, subagents —
+// leaving a read-only toolset that cannot run `gh`/`git` with the token we
+// provision. Verified against `agy` locally (2026-09).
 const MARKER = 'agentForge: true';
 // Ownership is a frontmatter line, not a substring: only the exact
 // `agentForge: true` spelling, and only inside the leading `---` block, counts
@@ -27,11 +33,10 @@ const AGENTS_HOME = join(homedir(), '.gemini', 'config', 'agents');
 // safe as a path segment (no traversal).
 const VALID_NAME = /^[a-z0-9][a-z0-9-]*$/;
 
-export function renderAgentFile(name, description, prompt) {
+export function renderAgentFile(name, prompt) {
   return [
     '---',
     `name: ${name}`,
-    `description: ${JSON.stringify(description)}`,
     'mainAgent: true',
     MARKER,
     '---',
@@ -56,7 +61,7 @@ export function syncAntigravityAgent(agent, prompt, agentsHome = AGENTS_HOME) {
 
   const dir = join(agentsHome, name);
   const file = join(dir, 'agent.md');
-  const next = renderAgentFile(name, agent.label || 'GitHub App identity managed by agent-forge', prompt);
+  const next = renderAgentFile(name, prompt);
 
   if (existsSync(file)) {
     const current = readFileSync(file, 'utf8');

@@ -8,16 +8,15 @@ import { renderAgentFile, syncAntigravityAgent } from '../src/agent-file.js';
 const home = () => mkdtempSync(join(tmpdir(), 'agent-forge-'));
 
 test('rendered agent.md has the required frontmatter and the prompt under an H1', () => {
-  const md = renderAgentFile('ops-agent', 'Ops Agent', 'You are Ops.');
+  const md = renderAgentFile('ops-agent', 'You are Ops.');
   assert.match(md, /^name: ops-agent$/m);
   assert.match(md, /^mainAgent: true$/m);
   assert.match(md, /^agentForge: true$/m);
   assert.match(md, /\n# Identity\n\nYou are Ops\.\n$/);
 });
 
-test('description is a YAML-safe scalar even with a colon', () => {
-  const md = renderAgentFile('a', 'Ops: the agent', 'p');
-  assert.match(md, /^description: "Ops: the agent"$/m);
+test('no description frontmatter — it makes agy strip run_command and the write tools', () => {
+  assert.doesNotMatch(renderAgentFile('a', 'p'), /^description:/m);
 });
 
 test('creates the agent dir and returns { file, name }', () => {
@@ -89,5 +88,5 @@ test('a standalone marker line in the prompt body does not count as managed', ()
 });
 
 test('a prompt with trailing whitespace does not add a blank line before EOF', () => {
-  assert.match(renderAgentFile('a', 'A', 'You are A.\n\n'), /You are A\.\n$/);
+  assert.match(renderAgentFile('a', 'You are A.\n\n'), /You are A\.\n$/);
 });
