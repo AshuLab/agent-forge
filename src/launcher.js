@@ -32,6 +32,9 @@ function buildGitIdentity(agent, botId) {
 async function launchAgent(agentName, providerName, accountEmail) {
   const agent = findAgent(agentName);
   const providerInfo = getProviderInfo(providerName, agent);
+  if (accountEmail && providerName !== 'claude') {
+    throw new Error(`--account only applies to the claude provider (got --provider ${providerName})`);
+  }
   const claudeAccountDir = providerName === 'claude' ? resolveClaudeAccountDir(agent, accountEmail) : undefined;
 
   const s = spinner();

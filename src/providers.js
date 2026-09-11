@@ -62,14 +62,24 @@ export function buildProviderArgs(providerName, prompt, antigravityAgent) {
   ];
 }
 
+// A .claude.json is a real account only once it has actually logged in.
+function readClaudeAccount(configPath) {
+  if (!existsSync(configPath)) return null;
+  try {
+    const { oauthAccount } = JSON.parse(readFileSync(configPath, 'utf8'));
+    return oauthAccount?.emailAddress ? oauthAccount : null;
+  } catch {
+    return null;
+  }
+}
+
 // claude reads CLAUDE_CONFIG_DIR for its whole account (auth, settings, history).
 // The default account (CLAUDE_CONFIG_DIR unset) keeps its .claude.json at
 // $HOME, not under $HOME/.claude — that split is claude's own default layout,
 // so it gets dir: null (meaning "unset CLAUDE_CONFIG_DIR", not "set it to $HOME").
 // Any other login lives fully under a $HOME/.claude-* dir the user pointed
-// CLAUDE_CONFIG_DIR at at least once.
-export function detectClaudeAccounts() {
-  const home = homedir();
+// CLAUDE_CONFIG_DIR at at least once. `home` is injectable for tests.
+export function detectClaudeAccounts(home = homedir()) {
   const candidates = [
     { dir: null, configPath: join(home, '.claude.json') },
     ...readdirSync(home)
@@ -80,14 +90,8 @@ export function detectClaudeAccounts() {
 
   return candidates
     .map(({ dir, configPath }) => {
-      if (!existsSync(configPath)) return null;
-      try {
-        const { oauthAccount } = JSON.parse(readFileSync(configPath, 'utf8'));
-        if (!oauthAccount?.emailAddress) return null;
-        return { dir, email: oauthAccount.emailAddress, org: oauthAccount.organizationName };
-      } catch {
-        return null;
-      }
+      const account = readClaudeAccount(configPath);
+      return account ? { dir, email: account.emailAddress, org: account.organizationName } : null;
     })
     .filter(Boolean);
 }
@@ -104,8 +108,18 @@ export function resolveClaudeAccount(email, accounts = detectClaudeAccounts()) {
 
 // agents.json stores a literal CLAUDE_CONFIG_DIR path (providers.claude.accountDir);
 // --account/wizard picks resolve an email against detectClaudeAccounts() instead.
+// A stale/typo'd configured path fails loudly here rather than silently inside
+// the spawned claude process (a confusing "not logged in" with agent-forge
+// having already reported success).
 export function resolveClaudeAccountDir(agent, accountEmail, accounts = detectClaudeAccounts()) {
   if (accountEmail) return resolveClaudeAccount(accountEmail, accounts).dir;
   const configured = agent.providers?.claude?.accountDir;
-  return configured ? expandHome(configured) : undefined;
+  if (!configured) return undefined;
+  const dir = expandHome(configured);
+  if (!readClaudeAccount(join(dir, '.claude.json'))) {
+    throw new Error(
+      `providers.claude.accountDir "${configured}" has no logged-in Claude account (expected ${join(dir, '.claude.json')} with an oauthAccount)`
+    );
+  }
+  return dir;
 }

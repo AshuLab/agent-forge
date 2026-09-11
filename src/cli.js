@@ -187,19 +187,24 @@ export async function interactiveSelection(defaults = {}) {
 
   let accountChoice = defaults.account;
   if (providerChoice === 'claude') {
-    const accounts = detectClaudeAccounts();
     if (accountChoice) {
-      resolveClaudeAccount(accountChoice, accounts);
-    } else if (accounts.length > 1) {
-      accountChoice = keep(
-        await select({
-          message: 'Which Claude account?',
-          options: accounts.map((account) => ({
-            value: account.email,
-            label: account.org ? `${account.email}  ·  ${account.org}` : account.email,
-          })),
-        })
+      resolveClaudeAccount(accountChoice);
+    } else {
+      const hasPersistedAccount = Boolean(
+        agents.find((item) => item.name === agentChoice)?.providers?.claude?.accountDir
       );
+      const accounts = hasPersistedAccount ? [] : detectClaudeAccounts();
+      if (accounts.length > 1) {
+        accountChoice = keep(
+          await select({
+            message: 'Which Claude account?',
+            options: accounts.map((account) => ({
+              value: account.email,
+              label: account.org ? `${account.email}  ·  ${account.org}` : account.email,
+            })),
+          })
+        );
+      }
     }
   }
 
