@@ -152,6 +152,20 @@ The identity prompt (identity block + the agent's optional `systemPrompt`) is in
 - `codex`: `-c developer_instructions=…` (appends a developer message; unlike `model_instructions_file` it does not replace codex's base prompt)
 - `antigravity` (`agy`): no prompt flag — the launcher writes the identity prompt as a global antigravity custom agent at `~/.gemini/config/agents/<name>/agent.md` (frontmatter `name`, `mainAgent: true`, `agentForge: true`; prompt under an `# Identity` heading) and passes `--agent <name>`. The file is keyed by the agent's registry `name`, upserted on each run, and never deleted. If a file with that name exists without our `agentForge` marker, the launch fails rather than overwrite it — rename the agent or remove that file.
 
+### Multiple Claude accounts
+
+`claude` reads its whole account — auth, settings, history — from `CLAUDE_CONFIG_DIR`. If you have more than one Claude login on your machine (each under its own `CLAUDE_CONFIG_DIR`), agent-forge can pick which one runs a given launch:
+
+```bash
+agent-forge --agent ops-agent --provider claude --account you@work.com
+```
+
+With no `--account`, the interactive wizard shows a picker when it detects more than one account. `--account` only applies to the `claude` provider. To pin a fixed account per agent instead of picking every run, set `providers.claude.accountDir` in `agents.json`:
+
+```json
+{ "providers": { "claude": { "accountDir": "~/.claude-work" } } }
+```
+
 ## Token refresh
 
 Installation tokens last ~1 hour. For longer sessions, print a fresh one on demand:

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-11
+
+### Added
+
+- `--account <email>` picks which Claude login (`CLAUDE_CONFIG_DIR`) a `claude`-provider launch runs under. With no `--account`, the interactive wizard shows a picker when it detects more than one account on the machine; with exactly one, or when the agent already has a `providers.claude.accountDir` configured, the picker is skipped.
+- `providers.claude.accountDir` in `agents.json` pins a fixed Claude account per agent, so it doesn't need to be picked on every run.
+
+### Changed
+
+- A `providers.claude.accountDir` with no valid login now fails fast with a clear error, instead of silently starting `claude` unauthenticated.
+- `--account` combined with a non-`claude` provider is now rejected with an explicit error instead of being silently ignored.
+
 ## [0.6.0] - 2026-09-10
 
 ### Changed
