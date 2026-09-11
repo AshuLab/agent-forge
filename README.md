@@ -65,6 +65,7 @@ The shape, for reference — the `"$schema"` line points at the published schema
 - `installationId` is accepted as an explicit override — set it to pin a specific id or skip the lookup (offline, or in a git credential helper).
 - One agent, many accounts: a **private** GitHub App only installs on the account that owns it. To run the agent on both a personal account and an org, make the App public or use one App per account — see [docs/github-app.md](docs/github-app.md).
 - `botId` is optional. When omitted it is resolved from the GitHub API using `botName` so the git author email links commits to the bot. Set it explicitly only to skip that lookup (e.g. offline).
+- `providers` holds per-provider overrides, e.g. `{ "claude": { "command": "claude", "accountDir": "~/.claude-work" } }`. `accountDir` pins which Claude login (`CLAUDE_CONFIG_DIR`) this agent runs under — see [Multiple Claude accounts](#multiple-claude-accounts).
 - Do not put provider-specific config here — providers are auto-detected from PATH.
 
 ### Least-privilege tokens (optional)
