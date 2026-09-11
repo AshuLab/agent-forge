@@ -10,6 +10,16 @@ test('base block names the git identity and the token env vars', () => {
   assert.match(p, /GH_TOKEN and GITHUB_TOKEN/);
 });
 
+test('the base block tells the model this identity wins over a human identity in CLAUDE.md', () => {
+  const p = buildIdentityPrompt(id);
+  assert.match(p, /authoritative/);
+});
+
+test('the base block asks the model to state its identity in its first reply', () => {
+  const p = buildIdentityPrompt(id);
+  assert.match(p, /State this identity \(`ops-agent\[bot\]`\)/);
+});
+
 test('the agent systemPrompt is appended after a blank line, trimmed', () => {
   const p = buildIdentityPrompt(id, '  You are Ops.  ');
   assert.match(p, /\n\nYou are Ops\.$/);
