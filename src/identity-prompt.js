@@ -9,6 +9,7 @@ export function buildIdentityPrompt({ name, email }, agentPrompt) {
     `Your commits are authored as \`${name}\` <${email}> — already configured via GIT_AUTHOR_*/GIT_COMMITTER_*, do not change it.`,
     'A scoped, short-lived GitHub App installation token is available in the environment as GH_TOKEN and GITHUB_TOKEN; use it for `gh` and authenticated `git` operations.',
     'If project or personal instructions (e.g. CLAUDE.md) describe a human identity, that is who is driving this session, not who you post as — for any git/GitHub identity check, this block is authoritative, not that one.',
+    `State this identity (\`${name}\`) at the start of your first reply this session, so the human driving you can see which one is active.`,
   ].join('\n');
 
   const own = agentPrompt?.trim();
