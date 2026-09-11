@@ -4,9 +4,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
+  assertAccountProvider,
   buildProviderArgs,
   detectClaudeAccounts,
   getProviderPromptArgs,
+  hasPersistedClaudeAccount,
   resolveClaudeAccount,
   resolveClaudeAccountDir,
 } from '../src/providers.js';
@@ -113,4 +115,19 @@ test('detectClaudeAccounts: finds the default ($HOME/.claude.json) and a custom 
     );
     assert.equal(found.length, 2, 'broken JSON, no oauthAccount, and no .claude.json must all be skipped');
   });
+});
+
+test('hasPersistedClaudeAccount: true only when providers.claude.accountDir is set', () => {
+  assert.equal(hasPersistedClaudeAccount({ providers: { claude: { accountDir: '~/.claude-work' } } }), true);
+  assert.equal(hasPersistedClaudeAccount({ providers: { claude: {} } }), false);
+  assert.equal(hasPersistedClaudeAccount({ providers: {} }), false);
+  assert.equal(hasPersistedClaudeAccount({}), false);
+  assert.equal(hasPersistedClaudeAccount(undefined), false);
+});
+
+test('assertAccountProvider: rejects --account with a non-claude provider, no-ops otherwise', () => {
+  assert.throws(() => assertAccountProvider('codex', 'a@x.com'), /--account only applies to the claude provider/);
+  assert.throws(() => assertAccountProvider('antigravity', 'a@x.com'), /got --provider antigravity/);
+  assert.doesNotThrow(() => assertAccountProvider('claude', 'a@x.com'));
+  assert.doesNotThrow(() => assertAccountProvider('codex', undefined));
 });

@@ -123,3 +123,17 @@ export function resolveClaudeAccountDir(agent, accountEmail, accounts = detectCl
   }
   return dir;
 }
+
+// True once an agent has a sticky Claude login in agents.json — the wizard
+// skips its account picker in that case rather than overriding it every run.
+export function hasPersistedClaudeAccount(agent) {
+  return Boolean(agent?.providers?.claude?.accountDir);
+}
+
+// Shared by interactiveSelection (pre-confirm) and launchAgent (the direct
+// --agent/--provider path, which has no confirm step to validate ahead of).
+export function assertAccountProvider(providerName, accountEmail) {
+  if (accountEmail && providerName !== 'claude') {
+    throw new Error(`--account only applies to the claude provider (got --provider ${providerName})`);
+  }
+}

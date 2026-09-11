@@ -2,7 +2,13 @@ import { styleText } from 'node:util';
 import { cancel, confirm, intro, isCancel, note, outro, select, spinner, text } from '@clack/prompts';
 import { addAgent, readAgents, readAgentsOrEmpty } from './config.js';
 import { fetchAppMetadata, generateGithubAppToken, resolveBotId } from './github.js';
-import { detectAvailableProviders, detectClaudeAccounts, resolveClaudeAccount } from './providers.js';
+import {
+  assertAccountProvider,
+  detectAvailableProviders,
+  detectClaudeAccounts,
+  hasPersistedClaudeAccount,
+  resolveClaudeAccount,
+} from './providers.js';
 import pkg from '../package.json' with { type: 'json' };
 
 const LOGO = `
@@ -186,14 +192,13 @@ export async function interactiveSelection(defaults = {}) {
   }
 
   let accountChoice = defaults.account;
+  assertAccountProvider(providerChoice, accountChoice);
   if (providerChoice === 'claude') {
     if (accountChoice) {
       resolveClaudeAccount(accountChoice);
     } else {
-      const hasPersistedAccount = Boolean(
-        agents.find((item) => item.name === agentChoice)?.providers?.claude?.accountDir
-      );
-      const accounts = hasPersistedAccount ? [] : detectClaudeAccounts();
+      const persisted = hasPersistedClaudeAccount(agents.find((item) => item.name === agentChoice));
+      const accounts = persisted ? [] : detectClaudeAccounts();
       if (accounts.length > 1) {
         accountChoice = keep(
           await select({

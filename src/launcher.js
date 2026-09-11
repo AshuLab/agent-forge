@@ -3,7 +3,13 @@ import { styleText } from 'node:util';
 import { cancel, log, note, outro, spinner } from '@clack/prompts';
 import { readAgents, listAgents } from './config.js';
 import { currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
-import { buildProviderArgs, detectAvailableProviders, getProviderInfo, resolveClaudeAccountDir } from './providers.js';
+import {
+  assertAccountProvider,
+  buildProviderArgs,
+  detectAvailableProviders,
+  getProviderInfo,
+  resolveClaudeAccountDir,
+} from './providers.js';
 import { syncAntigravityAgent } from './agent-file.js';
 import { buildIdentityPrompt } from './identity-prompt.js';
 import { formatExpiry, formatScope } from './format.js';
@@ -32,9 +38,7 @@ function buildGitIdentity(agent, botId) {
 async function launchAgent(agentName, providerName, accountEmail) {
   const agent = findAgent(agentName);
   const providerInfo = getProviderInfo(providerName, agent);
-  if (accountEmail && providerName !== 'claude') {
-    throw new Error(`--account only applies to the claude provider (got --provider ${providerName})`);
-  }
+  assertAccountProvider(providerName, accountEmail);
   const claudeAccountDir = providerName === 'claude' ? resolveClaudeAccountDir(agent, accountEmail) : undefined;
 
   const s = spinner();
