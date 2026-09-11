@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-09-11
+
+### Changed
+
+- The injected identity prompt now states it is authoritative over any human identity described in project/personal instructions (e.g. `CLAUDE.md`), so an agent doesn't confuse the human driving the session with the GitHub App identity it posts as.
+- The injected identity prompt asks the agent to state its identity in its first reply, so the human driving it can see which one is active.
+
 ## [0.7.0] - 2026-09-11
 
 ### Added
