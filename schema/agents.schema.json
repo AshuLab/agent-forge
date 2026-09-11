@@ -66,10 +66,16 @@
           },
           "providers": {
             "type": "object",
-            "description": "Per-provider overrides, keyed by provider value (e.g. { \"claude\": { \"command\": \"claude\" } })",
+            "description": "Per-provider overrides, keyed by provider value (e.g. { \"claude\": { \"command\": \"claude\", \"accountDir\": \"~/.claude-work\" } })",
             "additionalProperties": {
               "type": "object",
-              "properties": { "command": { "type": "string" } }
+              "properties": {
+                "command": { "type": "string" },
+                "accountDir": {
+                  "type": "string",
+                  "description": "claude only: CLAUDE_CONFIG_DIR to launch this agent under a specific Claude login. ~ is expanded. Overridden per-run by --account."
+                }
+              }
             }
           }
         }

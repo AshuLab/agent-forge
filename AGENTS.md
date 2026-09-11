@@ -36,7 +36,7 @@ Provider auth stays in the provider CLI. The launcher never handles provider API
 - `src/cli.js` — arg parsing, help text, interactive selection, `add` wizard.
 - `src/config.js` — locate/read/validate `agents.json`, append agents.
 - `src/github.js` — App JWT, installation tokens, installation-id + bot-id resolution, App metadata.
-- `src/providers.js` — provider table, PATH detection, per-provider prompt flags.
+- `src/providers.js` — provider table, PATH detection, per-provider prompt flags, claude multi-account detection (`CLAUDE_CONFIG_DIR`).
 - `src/agent-file.js` — upsert the antigravity global custom agent (`~/.gemini/config/agents/<name>/agent.md`), guarded by the `agentForge` ownership marker.
 - `src/format.js` — presentation helpers for the launch summary (scope, expiry).
 - `test/*.test.js` — one test file per module, run by Node's built-in test runner.

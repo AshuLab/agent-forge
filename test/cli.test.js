@@ -15,4 +15,5 @@ test('positional command, flag values, dash guard', () => {
   assert.equal(run('--provider', 'claude').provider, 'claude');
   assert.equal(run('--version').version, true);
   assert.equal(run('-v').version, true);
+  assert.equal(run('--account', 'a@x.com').account, 'a@x.com');
 });

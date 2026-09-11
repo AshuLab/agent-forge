@@ -3,7 +3,13 @@ import { styleText } from 'node:util';
 import { cancel, log, note, outro, spinner } from '@clack/prompts';
 import { readAgents, listAgents } from './config.js';
 import { currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
-import { buildProviderArgs, detectAvailableProviders, getProviderInfo } from './providers.js';
+import {
+  assertAccountProvider,
+  buildProviderArgs,
+  detectAvailableProviders,
+  getProviderInfo,
+  resolveClaudeAccountDir,
+} from './providers.js';
 import { syncAntigravityAgent } from './agent-file.js';
 import { buildIdentityPrompt } from './identity-prompt.js';
 import { formatExpiry, formatScope } from './format.js';
@@ -29,9 +35,11 @@ function buildGitIdentity(agent, botId) {
   };
 }
 
-async function launchAgent(agentName, providerName) {
+async function launchAgent(agentName, providerName, accountEmail) {
   const agent = findAgent(agentName);
   const providerInfo = getProviderInfo(providerName, agent);
+  assertAccountProvider(providerName, accountEmail);
+  const claudeAccountDir = providerName === 'claude' ? resolveClaudeAccountDir(agent, accountEmail) : undefined;
 
   const s = spinner();
   s.start('Minting installation token');
@@ -55,6 +63,11 @@ async function launchAgent(agentName, providerName) {
     GH_TOKEN: githubToken,
     ...gitIdentity,
   };
+  // claudeAccountDir is undefined (no account picked, leave CLAUDE_CONFIG_DIR
+  // as inherited), null (default account picked — force-unset it, in case one
+  // was already exported), or a path (a non-default account picked).
+  if (claudeAccountDir === null) delete runtimeEnv.CLAUDE_CONFIG_DIR;
+  else if (claudeAccountDir) runtimeEnv.CLAUDE_CONFIG_DIR = claudeAccountDir;
 
   const narrowed = Boolean(agent.permissions) || Boolean(agent.repositories);
   const scopeText = formatScope(permissions, narrowed);
@@ -66,6 +79,9 @@ async function launchAgent(agentName, providerName) {
     row('identity', styleText('green', gitIdentity.GIT_AUTHOR_NAME)),
   ];
   if (account) summary.push(row('account', styleText('yellow', account)));
+  if (claudeAccountDir !== undefined) {
+    summary.push(row('claude', styleText('dim', claudeAccountDir === null ? 'default account' : claudeAccountDir)));
+  }
   if (repoSlug) summary.push(row('repo', styleText('dim', `${repoSlug.owner}/${repoSlug.repo}`)));
   summary.push(
     row('scope', styleText('dim', repositorySelection === 'selected' ? `${scopeText}  ·  selected repos` : scopeText))
@@ -136,12 +152,12 @@ async function main() {
     if (!detectAvailableProviders().some((provider) => provider.value === flags.provider)) {
       throw new Error(`The provider ${flags.provider} is not installed or not available in PATH.`);
     }
-    await launchAgent(flags.agent, flags.provider);
+    await launchAgent(flags.agent, flags.provider, flags.account);
     return;
   }
 
-  const interactive = await interactiveSelection({ agent: flags.agent, provider: flags.provider });
-  await launchAgent(interactive.agentName, interactive.providerName);
+  const interactive = await interactiveSelection({ agent: flags.agent, provider: flags.provider, account: flags.account });
+  await launchAgent(interactive.agentName, interactive.providerName, interactive.accountChoice);
 }
 
 main().catch((error) => {

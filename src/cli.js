@@ -2,7 +2,13 @@ import { styleText } from 'node:util';
 import { cancel, confirm, intro, isCancel, note, outro, select, spinner, text } from '@clack/prompts';
 import { addAgent, readAgents, readAgentsOrEmpty } from './config.js';
 import { fetchAppMetadata, generateGithubAppToken, resolveBotId } from './github.js';
-import { detectAvailableProviders } from './providers.js';
+import {
+  assertAccountProvider,
+  detectAvailableProviders,
+  detectClaudeAccounts,
+  hasPersistedClaudeAccount,
+  resolveClaudeAccount,
+} from './providers.js';
 import pkg from '../package.json' with { type: 'json' };
 
 const LOGO = `
@@ -22,6 +28,7 @@ Agent Forge v${pkg.version}
 Usage:
   agent-forge
   agent-forge --agent <name> --provider <claude|codex|antigravity>
+  agent-forge --agent <name> --provider claude --account <email>   pick which Claude login to run under
   agent-forge add                    guided setup for a new agent
   agent-forge token --agent <name>   print a fresh GitHub App token (for refresh)
   agent-forge --list
@@ -184,12 +191,34 @@ export async function interactiveSelection(defaults = {}) {
           );
   }
 
+  let accountChoice = defaults.account;
+  assertAccountProvider(providerChoice, accountChoice);
+  if (providerChoice === 'claude') {
+    if (accountChoice) {
+      resolveClaudeAccount(accountChoice);
+    } else {
+      const persisted = hasPersistedClaudeAccount(agents.find((item) => item.name === agentChoice));
+      const accounts = persisted ? [] : detectClaudeAccounts();
+      if (accounts.length > 1) {
+        accountChoice = keep(
+          await select({
+            message: 'Which Claude account?',
+            options: accounts.map((account) => ({
+              value: account.email,
+              label: account.org ? `${account.email}  ·  ${account.org}` : account.email,
+            })),
+          })
+        );
+      }
+    }
+  }
+
   const launchPrompt = `Launch ${styleText('green', agentChoice)} with ${styleText(['cyan', 'bold'], providerChoice)}?`;
   if (!keep(await confirm({ message: launchPrompt }))) {
     bail('Cancelled — nothing launched');
   }
 
-  return { agentName: agentChoice, providerName: providerChoice };
+  return { agentName: agentChoice, providerName: providerChoice, accountChoice };
 }
 
 export function parseArgs() {
@@ -201,6 +230,7 @@ export function parseArgs() {
     list: false,
     agent: undefined,
     provider: undefined,
+    account: undefined,
   };
 
   const value = (next) => (next && !next.startsWith('-') ? next : undefined);
@@ -218,6 +248,10 @@ export function parseArgs() {
     }
     if (arg === '--provider' || arg === '-p') {
       result.provider = value(next);
+      i += 1;
+    }
+    if (arg === '--account') {
+      result.account = value(next);
       i += 1;
     }
   }
