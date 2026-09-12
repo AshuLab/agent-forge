@@ -51,7 +51,8 @@ async function launchAgent(agentName, providerName, accountEmail) {
 
   const identityPrompt = buildIdentityPrompt(
     { name: gitIdentity.GIT_AUTHOR_NAME, email: gitIdentity.GIT_AUTHOR_EMAIL },
-    agent.systemPrompt || agent.instructions || agent.identityPrompt
+    agent.systemPrompt || agent.instructions || agent.identityPrompt,
+    { agentName: agent.name, expiresAt }
   );
 
   const antigravityAgent =

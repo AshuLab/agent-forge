@@ -29,3 +29,16 @@ test('an absent or empty systemPrompt leaves just the base block', () => {
   assert.equal(buildIdentityPrompt(id), buildIdentityPrompt(id, ''));
   assert.equal(buildIdentityPrompt(id), buildIdentityPrompt(id, '   '));
 });
+
+test('with tokenInfo, the prompt tells the model how to mint a replacement inline', () => {
+  const expiresAt = new Date(Date.now() + 3600_000).toISOString();
+  const p = buildIdentityPrompt(id, '', { agentName: 'ops-agent', expiresAt });
+  assert.match(p, /valid until/);
+  assert.match(p, /GH_TOKEN=\$\(agent-forge token --agent ops-agent\) gh \.\.\./);
+  assert.match(p, /do not `export` it/);
+});
+
+test('without tokenInfo, the prompt omits the expiry/refresh block', () => {
+  const p = buildIdentityPrompt(id);
+  assert.doesNotMatch(p, /valid until/);
+});
