@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-12
+
 ### Added
 
 - `agent-forge gh <name> <gh args...>` mints a fresh GitHub App token and runs the real `gh` with it for that one call — the ergonomic recovery path when a session's injected `GH_TOKEN` goes stale (installation tokens have a fixed, non-renewable-in-place lifetime).
