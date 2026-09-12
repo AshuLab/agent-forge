@@ -179,3 +179,10 @@ export async function generateGithubAppToken(agent) {
     repositorySelection: data.repository_selection || 'all',
   };
 }
+
+// The env `gh` runs under for exactly one call (`agent-forge gh`): only this
+// pair changes, so a stale GH_TOKEN already exported in the shell never wins
+// over the token just minted for this call.
+export function buildGhEnv(token) {
+  return { ...process.env, GH_TOKEN: token, GITHUB_TOKEN: token };
+}

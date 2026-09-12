@@ -29,3 +29,35 @@ test('an absent or empty systemPrompt leaves just the base block', () => {
   assert.equal(buildIdentityPrompt(id), buildIdentityPrompt(id, ''));
   assert.equal(buildIdentityPrompt(id), buildIdentityPrompt(id, '   '));
 });
+
+test('with tokenInfo, the prompt tells the model how to mint a replacement inline', () => {
+  const expiresAt = new Date(Date.now() + 3600_000).toISOString();
+  const p = buildIdentityPrompt(id, '', { agentName: 'ops-agent', expiresAt });
+  assert.match(p, /valid until/);
+  assert.match(p, /agent-forge gh ops-agent <args\.\.\.>/);
+  assert.match(p, /GH_TOKEN=\$\(agent-forge token --agent ops-agent\) git push/);
+  assert.match(p, /do not `export` it/);
+});
+
+test('without tokenInfo, the prompt omits the expiry/refresh block', () => {
+  const p = buildIdentityPrompt(id);
+  assert.doesNotMatch(p, /valid until/);
+});
+
+test('agentName without expiresAt still gets the recovery instruction, no expiry sentence', () => {
+  const p = buildIdentityPrompt(id, '', { agentName: 'ops-agent' });
+  assert.doesNotMatch(p, /valid until/);
+  assert.match(p, /agent-forge gh ops-agent <args\.\.\.>/);
+});
+
+test('scopeText tells the model what it can reach, and that a replacement keeps the same scope', () => {
+  const p = buildIdentityPrompt(id, '', { agentName: 'ops-agent', scopeText: 'write: pull_requests · selected repos' });
+  assert.match(p, /Its scope is fixed to: write: pull_requests · selected repos\./);
+  assert.match(p, /never more/);
+});
+
+test('without scopeText, the prompt omits the scope sentence but keeps the rest', () => {
+  const p = buildIdentityPrompt(id, '', { agentName: 'ops-agent' });
+  assert.doesNotMatch(p, /Its scope is fixed to/);
+  assert.match(p, /agent-forge gh ops-agent <args\.\.\.>/);
+});

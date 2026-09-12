@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { styleText } from 'node:util';
 import { cancel, log, note, outro, spinner } from '@clack/prompts';
 import { readAgents, listAgents } from './config.js';
-import { currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
+import { buildGhEnv, currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
 import {
   assertAccountProvider,
   buildProviderArgs,
@@ -21,6 +21,15 @@ function findAgent(agentName) {
     throw new Error(`Agent not found: ${agentName}`);
   }
   return agent;
+}
+
+// Leaves a trace in stderr every time an agent (or a human) mints a token
+// outside the initial launch — `token`/`gh` are callable at will mid-session,
+// so this is the only record that it happened and with what scope.
+function announceMint(agentName, minted) {
+  const scope = Object.entries(minted.permissions).map(([name, level]) => `${name}:${level}`).join(' ');
+  const suffix = scope ? ` · scope: ${scope}${minted.repositorySelection === 'selected' ? ' (selected repos)' : ''}` : '';
+  process.stderr.write(`minted fresh token for ${agentName}${suffix}\n`);
 }
 
 function buildGitIdentity(agent, botId) {
@@ -49,13 +58,26 @@ async function launchAgent(agentName, providerName, accountEmail) {
   const gitIdentity = buildGitIdentity(agent, botId);
   s.stop(`Token ready for ${styleText('green', gitIdentity.GIT_AUTHOR_NAME)}`);
 
-  const identityPrompt = buildIdentityPrompt(
-    { name: gitIdentity.GIT_AUTHOR_NAME, email: gitIdentity.GIT_AUTHOR_EMAIL },
-    agent.systemPrompt || agent.instructions || agent.identityPrompt
-  );
+  const narrowed = Boolean(agent.permissions) || Boolean(agent.repositories);
+  const scopeText = formatScope(permissions, narrowed);
+  const scopeSummary = repositorySelection === 'selected' ? `${scopeText} · selected repos` : scopeText;
 
+  const gitIdentityInfo = { name: gitIdentity.GIT_AUTHOR_NAME, email: gitIdentity.GIT_AUTHOR_EMAIL };
+  const ownPrompt = agent.systemPrompt || agent.instructions || agent.identityPrompt;
+  const tokenInfoBase = { agentName: agent.name, scopeText: scopeSummary };
+  const identityPrompt = buildIdentityPrompt(gitIdentityInfo, ownPrompt, { ...tokenInfoBase, expiresAt });
+
+  // Antigravity's copy is persisted to disk and only rewritten on the next
+  // agent-forge launch (see agent-file.js) — an absolute expiry timestamp in
+  // it would go stale the moment `agy --agent <name>` runs without going
+  // through agent-forge again. Omit expiresAt here; the recovery instruction
+  // alone doesn't age. Scope ages far slower — it only drifts if the
+  // installation's actual grant changes on GitHub's side between launches —
+  // so it's kept, at the same staleness risk as everything else in this file.
   const antigravityAgent =
-    providerName === 'antigravity' ? syncAntigravityAgent(agent, identityPrompt) : null;
+    providerName === 'antigravity'
+      ? syncAntigravityAgent(agent, buildIdentityPrompt(gitIdentityInfo, ownPrompt, tokenInfoBase))
+      : null;
 
   const runtimeEnv = {
     ...process.env,
@@ -69,8 +91,6 @@ async function launchAgent(agentName, providerName, accountEmail) {
   if (claudeAccountDir === null) delete runtimeEnv.CLAUDE_CONFIG_DIR;
   else if (claudeAccountDir) runtimeEnv.CLAUDE_CONFIG_DIR = claudeAccountDir;
 
-  const narrowed = Boolean(agent.permissions) || Boolean(agent.repositories);
-  const scopeText = formatScope(permissions, narrowed);
   const repoSlug = currentRepoSlug();
 
   const row = (label, value) => `${styleText('dim', label.padEnd(10))}${value}`;
@@ -83,9 +103,7 @@ async function launchAgent(agentName, providerName, accountEmail) {
     summary.push(row('claude', styleText('dim', claudeAccountDir === null ? 'default account' : claudeAccountDir)));
   }
   if (repoSlug) summary.push(row('repo', styleText('dim', `${repoSlug.owner}/${repoSlug.repo}`)));
-  summary.push(
-    row('scope', styleText('dim', repositorySelection === 'selected' ? `${scopeText}  ·  selected repos` : scopeText))
-  );
+  summary.push(row('scope', styleText('dim', scopeSummary)));
   if (expiresAt) summary.push(row('expires', styleText('dim', formatExpiry(expiresAt))));
   if (antigravityAgent) {
     summary.push(row('agent', styleText('dim', `--agent ${antigravityAgent.name}  ·  ${antigravityAgent.file}`)));
@@ -140,9 +158,27 @@ async function main() {
       throw new Error('Usage: agent-forge token --agent <name>');
     }
     const minted = await generateGithubAppToken(findAgent(flags.agent));
-    const scope = Object.entries(minted.permissions).map(([name, level]) => `${name}:${level}`).join(' ');
-    if (scope) process.stderr.write(`scope: ${scope}${minted.repositorySelection === 'selected' ? ' (selected repos)' : ''}\n`);
+    announceMint(flags.agent, minted);
     process.stdout.write(minted.token);
+    return;
+  }
+
+  if (flags.command === 'gh') {
+    if (!flags.agent || flags.ghArgs.length === 0) {
+      throw new Error('Usage: agent-forge gh <agent-name> <gh args...>');
+    }
+    const minted = await generateGithubAppToken(findAgent(flags.agent));
+    announceMint(flags.agent, minted);
+    const child = spawn('gh', flags.ghArgs, {
+      stdio: 'inherit',
+      env: buildGhEnv(minted.token),
+      shell: false,
+    });
+    child.on('exit', (code) => process.exit(code ?? 1));
+    child.on('error', (error) => {
+      log.error(`Could not execute gh: ${error.message}`, { output: process.stderr });
+      process.exit(1);
+    });
     return;
   }
 

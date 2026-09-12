@@ -54,5 +54,6 @@ Provider auth stays in the provider CLI. The launcher never handles provider API
 ## Gotchas
 
 - `dist/` is gitignored — `pnpm build` regenerates `dist/launcher.cjs`; `prepublishOnly` runs build + test before publish.
-- No offline mode: `pnpm dev` and `agent-forge token` always mint a real installation token, so they need a valid `appId` and a readable `privateKeyPath` or they fail at "Minting installation token".
+- No offline mode: `pnpm dev`, `agent-forge token`, and `agent-forge gh` always mint a real installation token, so they need a valid `appId` and a readable `privateKeyPath` or they fail at "Minting installation token".
+- `agent-forge gh <name> <gh args...>` mints a token and execs the real `gh` with it for that one call only — the fix for a session's injected `GH_TOKEN` going stale mid-run (installation tokens aren't renewable in place). The identity prompt tells the agent to use it instead of the raw env var once a call starts 401ing.
 - claude and codex receive their identity via a CLI flag — nothing is written. `antigravity` writes/updates a global custom agent under `~/.gemini/config/agents/<name>/` (outside the repo, persisted, never auto-deleted); a name collision with a file lacking the `agentForge` marker aborts the launch instead of overwriting it.

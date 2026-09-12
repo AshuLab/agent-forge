@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTokenScope, githubApiError, parseGithubRemote, pickInstallation } from '../src/github.js';
+import { buildGhEnv, buildTokenScope, githubApiError, parseGithubRemote, pickInstallation } from '../src/github.js';
 
 const installs = [
   { id: '1', account: 'vemec' },
@@ -62,4 +62,15 @@ test('githubApiError: other statuses and non-JWT 401s are passed through plain',
     githubApiError('/users/x', 401, 'Bad credentials', false),
     'GitHub API /users/x: 401 Bad credentials'
   );
+});
+
+test('buildGhEnv: overrides GH_TOKEN and GITHUB_TOKEN with the fresh token, keeps the rest of process.env', () => {
+  process.env.AGENT_FORGE_TEST_UNRELATED = 'kept';
+  process.env.GH_TOKEN = 'stale';
+  const env = buildGhEnv('fresh-token');
+  assert.equal(env.GH_TOKEN, 'fresh-token');
+  assert.equal(env.GITHUB_TOKEN, 'fresh-token');
+  assert.equal(env.AGENT_FORGE_TEST_UNRELATED, 'kept');
+  delete process.env.AGENT_FORGE_TEST_UNRELATED;
+  delete process.env.GH_TOKEN;
 });
