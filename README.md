@@ -175,6 +175,12 @@ Installation tokens last ~1 hour. For longer sessions, print a fresh one on dema
 export GH_TOKEN=$(agent-forge token --agent ops-agent)
 ```
 
+Or, for a single `gh` call, skip the `export` and run it through `gh` directly — mints a fresh token just for that call:
+
+```bash
+agent-forge gh ops-agent pr create --title "..." --body "..."
+```
+
 Or wire it into git as a credential helper so pushes never see a stale token:
 
 ```bash

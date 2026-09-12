@@ -227,13 +227,6 @@ export function parseArgs() {
   const args = process.argv.slice(2);
   const command = args[0] && !args[0].startsWith('-') ? args[0] : undefined;
 
-  // `gh` forwards everything after the agent name to the real `gh` binary
-  // as opaque argv — it must not go through the flag loop below, or a
-  // passthrough flag like `--title` could collide with agent-forge's own.
-  if (command === 'gh') {
-    return { command, agent: args[1], ghArgs: args.slice(2) };
-  }
-
   const result = {
     command,
     help: false,
@@ -243,6 +236,13 @@ export function parseArgs() {
     provider: undefined,
     account: undefined,
   };
+
+  // `gh` forwards everything after the agent name to the real `gh` binary
+  // as opaque argv — it must not go through the flag loop below, or a
+  // passthrough flag like `--title` could collide with agent-forge's own.
+  if (command === 'gh') {
+    return { ...result, agent: args[1], ghArgs: args.slice(2) };
+  }
 
   const value = (next) => (next && !next.startsWith('-') ? next : undefined);
 

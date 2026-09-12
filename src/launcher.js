@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { styleText } from 'node:util';
 import { cancel, log, note, outro, spinner } from '@clack/prompts';
 import { readAgents, listAgents } from './config.js';
-import { currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
+import { buildGhEnv, currentRepoSlug, generateGithubAppToken, resolveBotId } from './github.js';
 import {
   assertAccountProvider,
   buildProviderArgs,
@@ -71,8 +71,9 @@ async function launchAgent(agentName, providerName, accountEmail) {
   // agent-forge launch (see agent-file.js) — an absolute expiry timestamp in
   // it would go stale the moment `agy --agent <name>` runs without going
   // through agent-forge again. Omit expiresAt here; the recovery instruction
-  // alone doesn't age. Scope is safe to keep — it's fixed by the registry
-  // entry, not by any one token's clock.
+  // alone doesn't age. Scope ages far slower — it only drifts if the
+  // installation's actual grant changes on GitHub's side between launches —
+  // so it's kept, at the same staleness risk as everything else in this file.
   const antigravityAgent =
     providerName === 'antigravity'
       ? syncAntigravityAgent(agent, buildIdentityPrompt(gitIdentityInfo, ownPrompt, tokenInfoBase))
@@ -170,7 +171,7 @@ async function main() {
     announceMint(flags.agent, minted);
     const child = spawn('gh', flags.ghArgs, {
       stdio: 'inherit',
-      env: { ...process.env, GH_TOKEN: minted.token, GITHUB_TOKEN: minted.token },
+      env: buildGhEnv(minted.token),
       shell: false,
     });
     child.on('exit', (code) => process.exit(code ?? 1));

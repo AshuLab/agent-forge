@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `agent-forge gh <name> <gh args...>` mints a fresh GitHub App token and runs the real `gh` with it for that one call — the ergonomic recovery path when a session's injected `GH_TOKEN` goes stale (installation tokens have a fixed, non-renewable-in-place lifetime).
+
+### Changed
+
+- The injected identity prompt now states the token's actual expiry (from GitHub's response, not an assumed duration) and its actual scope, and tells the agent how to mint a replacement (`agent-forge gh`/`agent-forge token`) instead of getting stuck on a `401` mid-session.
+- `agent-forge token` and the new `agent-forge gh` both announce every mint to stderr (`minted fresh token for <name> · scope: ...`), so a mid-session refresh leaves a trace.
+
 ## [0.7.1] - 2026-09-11
 
 ### Changed
