@@ -49,14 +49,19 @@ async function launchAgent(agentName, providerName, accountEmail) {
   const gitIdentity = buildGitIdentity(agent, botId);
   s.stop(`Token ready for ${styleText('green', gitIdentity.GIT_AUTHOR_NAME)}`);
 
-  const identityPrompt = buildIdentityPrompt(
-    { name: gitIdentity.GIT_AUTHOR_NAME, email: gitIdentity.GIT_AUTHOR_EMAIL },
-    agent.systemPrompt || agent.instructions || agent.identityPrompt,
-    { agentName: agent.name, expiresAt }
-  );
+  const gitIdentityInfo = { name: gitIdentity.GIT_AUTHOR_NAME, email: gitIdentity.GIT_AUTHOR_EMAIL };
+  const ownPrompt = agent.systemPrompt || agent.instructions || agent.identityPrompt;
+  const identityPrompt = buildIdentityPrompt(gitIdentityInfo, ownPrompt, { agentName: agent.name, expiresAt });
 
+  // Antigravity's copy is persisted to disk and only rewritten on the next
+  // agent-forge launch (see agent-file.js) — an absolute expiry timestamp in
+  // it would go stale the moment `agy --agent <name>` runs without going
+  // through agent-forge again. Omit expiresAt here; the recovery instruction
+  // alone doesn't age.
   const antigravityAgent =
-    providerName === 'antigravity' ? syncAntigravityAgent(agent, identityPrompt) : null;
+    providerName === 'antigravity'
+      ? syncAntigravityAgent(agent, buildIdentityPrompt(gitIdentityInfo, ownPrompt, { agentName: agent.name }))
+      : null;
 
   const runtimeEnv = {
     ...process.env,

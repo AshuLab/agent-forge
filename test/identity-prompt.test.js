@@ -42,3 +42,9 @@ test('without tokenInfo, the prompt omits the expiry/refresh block', () => {
   const p = buildIdentityPrompt(id);
   assert.doesNotMatch(p, /valid until/);
 });
+
+test('agentName without expiresAt still gets the recovery instruction, no expiry sentence', () => {
+  const p = buildIdentityPrompt(id, '', { agentName: 'ops-agent' });
+  assert.doesNotMatch(p, /valid until/);
+  assert.match(p, /GH_TOKEN=\$\(agent-forge token --agent ops-agent\) gh \.\.\./);
+});
