@@ -31,6 +31,8 @@ Usage:
   agent-forge --agent <name> --provider claude --account <email>   pick which Claude login to run under
   agent-forge add                    guided setup for a new agent
   agent-forge token --agent <name>   print a fresh GitHub App token (for refresh)
+  agent-forge gh <name> <gh args...> mint a fresh token and run gh with it, e.g.:
+                                      agent-forge gh ops-agent pr create --title "..."
   agent-forge --list
   agent-forge --version
   agent-forge --help
@@ -223,8 +225,17 @@ export async function interactiveSelection(defaults = {}) {
 
 export function parseArgs() {
   const args = process.argv.slice(2);
+  const command = args[0] && !args[0].startsWith('-') ? args[0] : undefined;
+
+  // `gh` forwards everything after the agent name to the real `gh` binary
+  // as opaque argv — it must not go through the flag loop below, or a
+  // passthrough flag like `--title` could collide with agent-forge's own.
+  if (command === 'gh') {
+    return { command, agent: args[1], ghArgs: args.slice(2) };
+  }
+
   const result = {
-    command: args[0] && !args[0].startsWith('-') ? args[0] : undefined,
+    command,
     help: false,
     version: false,
     list: false,

@@ -9,12 +9,17 @@ export function buildIdentityPrompt({ name, email }, agentPrompt, tokenInfo) {
   // one thing this block exists to tell the model.
   const tokenLines = tokenInfo?.agentName
     ? [
+        ...(tokenInfo.scopeText
+          ? [
+              `Its scope is fixed to: ${tokenInfo.scopeText}. That's everything you can reach with it — a replacement token (below) carries the exact same scope, never more.`,
+            ]
+          : []),
         ...(tokenInfo.expiresAt
           ? [
               `That token is valid until ${new Date(tokenInfo.expiresAt).toLocaleTimeString()} for this session and cannot be renewed in place once it stops working — only replaced.`,
             ]
           : []),
-        `If a \`gh\`/git/API call fails with 401, mint a fresh token and use it inline for that one command, e.g. \`GH_TOKEN=$(agent-forge token --agent ${tokenInfo.agentName}) gh ...\` — do not \`export\` it, since exported vars do not survive to your next command.`,
+        `If a \`gh\`/git/API call fails with 401: for \`gh\`, run it through \`agent-forge gh ${tokenInfo.agentName} <args...>\` instead (mints a fresh token for that one call); for git or a raw API call, use \`agent-forge token --agent ${tokenInfo.agentName}\` inline (e.g. \`GH_TOKEN=$(agent-forge token --agent ${tokenInfo.agentName}) git push\`) — do not \`export\` it, since exported vars do not survive to your next command.`,
       ]
     : [];
 
